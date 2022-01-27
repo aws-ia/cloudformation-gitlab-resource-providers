@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>com.cloudformation.gitlab.project</groupId>
         <artifactId>cloudformation-gitlab</artifactId>
@@ -10,10 +10,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>gitlab-project-resource</artifactId>
+    <artifactId>gitlab-group-resource</artifactId>
     <packaging>jar</packaging>
 
-    <!-- `cfn` requires the dependency to be here, even though it's in the parent pom.xml -->
     <dependencies>
         <dependency>
             <groupId>software.amazon.cloudformation</groupId>
@@ -121,8 +120,7 @@
             </resource>
         </resources>
         <finalName>
-            cloudformation-gitlab-project-handler-${version}
+            cloudformation-gitlab-group-handler-${version}
         </finalName>
     </build>
-
 </project>
