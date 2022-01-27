@@ -13,6 +13,15 @@
     <artifactId>gitlab-project-resource</artifactId>
     <packaging>jar</packaging>
 
+    <!-- `cfn` requires the dependency to be here, even though it's in the parent pom.xml -->
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.cloudformation</groupId>
+            <artifactId>aws-cloudformation-rpdk-java-plugin</artifactId>
+            <version>[2.0.0,3.0.0)</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -111,6 +120,9 @@
                 </includes>
             </resource>
         </resources>
+        <finalName>
+            cloudformation-gitlab-project-handler-${version}
+        </finalName>
     </build>
 
 </project>
