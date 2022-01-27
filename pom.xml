@@ -13,6 +13,7 @@
 
     <modules>
         <module>gitlab-project-resource</module>
+        <module>gitlab-group-resource</module>
     </modules>
 
     <properties>

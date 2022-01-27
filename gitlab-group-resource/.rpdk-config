@@ -1,0 +1,25 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "Cloudformation::GitLab::Group",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.cloudformation.gitlab.group.HandlerWrapper::handleRequest",
+    "testEntrypoint": "com.cloudformation.gitlab.group.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "namespace": [
+            "com",
+            "cloudformation",
+            "gitlab",
+            "group"
+        ],
+        "codegen_template_path": "default",
+        "protocolVersion": "2.0.0"
+    },
+    "executableEntrypoint": "com.cloudformation.gitlab.group.HandlerWrapperExecutable"
+}
