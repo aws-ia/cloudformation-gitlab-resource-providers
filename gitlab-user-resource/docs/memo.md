@@ -1,4 +1,4 @@
-# CloudFormation::GitLab::Project Memo
+# CloudFormation::GitLab::User Memo
 
 ## Syntax
 

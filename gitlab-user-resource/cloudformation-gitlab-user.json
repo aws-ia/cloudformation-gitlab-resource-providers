@@ -1,5 +1,5 @@
 {
-    "typeName": "CloudFormation::GitLab::Project",
+    "typeName": "CloudFormation::GitLab::User",
     "description": "An example resource schema demonstrating some basic constructs and validation rules.",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
     "definitions": {

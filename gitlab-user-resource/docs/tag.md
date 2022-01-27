@@ -1,4 +1,4 @@
-# CloudFormation::GitLab::Project Tag
+# CloudFormation::GitLab::User Tag
 
 A key-value pair to associate with a resource.
 

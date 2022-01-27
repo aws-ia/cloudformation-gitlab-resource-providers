@@ -14,6 +14,7 @@
     <modules>
         <module>gitlab-project-resource</module>
         <module>gitlab-group-resource</module>
+        <module>gitlab-user-resource</module>
     </modules>
 
     <properties>
