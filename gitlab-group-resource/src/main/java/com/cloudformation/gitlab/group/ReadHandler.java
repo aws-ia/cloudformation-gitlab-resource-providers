@@ -17,7 +17,7 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        // TODO : put your code here
+        logger.log("ReadHandler.model: " + model);
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
             .resourceModel(model)
