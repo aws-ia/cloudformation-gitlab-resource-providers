@@ -14,7 +14,7 @@
     <modules>
         <module>gitlab-project-resource</module>
         <module>gitlab-group-resource</module>
-        <module>gitlab-user-resource</module>
+        <module>gitlab-projecttoken-resource</module>
     </modules>
 
     <properties>
@@ -97,6 +97,11 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>3.6.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.gitlab4j</groupId>
+            <artifactId>gitlab4j-api</artifactId>
+            <version>4.19.0</version>
         </dependency>
     </dependencies>
 

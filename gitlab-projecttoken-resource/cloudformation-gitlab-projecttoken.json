@@ -1,0 +1,87 @@
+{
+    "typeName": "CloudFormation::GitLab::ProjectToken",
+    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "ProjectToken": {
+            "type": "object",
+            "properties": {
+                "Key": {
+                    "type": "string",
+                    "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+                    "minLength": 1,
+                    "maxLength": 128
+                },
+                "Value": {
+                    "type": "string",
+                    "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+                    "minLength": 0,
+                    "maxLength": 256
+                }
+            },
+            "required": [
+                "Key",
+                "Value"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "Token": {
+            "description": "Authentication Token",
+            "type": "string",
+            "maxLength": 64
+        },
+        "ProjectID": {
+            "description": "Project unique identifier",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Server": {
+            "description": "GitLab Server address",
+            "type": "string",
+            "maxLength": 64
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Token",
+        "Server",
+        "ProjectID"
+    ],
+    "readOnlyProperties": [
+        "/properties/Token",
+        "/properties/ProjectID",
+        "/properties/Server"
+    ],
+    "primaryIdentifier": [
+        "/properties/ProjectID"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "gitlab:CreateProjectToken"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "gitlab:DescribeProjectToken"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "gitlab:UpdateProjectToken"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "gitlab:DeleteProjectToken"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "gitlab:ListProjectTokens"
+            ]
+        }
+    }
+}

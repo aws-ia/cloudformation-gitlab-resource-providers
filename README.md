@@ -44,7 +44,7 @@ What's the name of your resource type?
 (Organization::Service::Resource)
 >> CloudFormation::GitLab::User
 One language plugin found, defaulting to java
-Enter a package name (empty for default 'com.cloudformation.gitlab.user'): 
+Enter a package name (empty for default 'com.cloudformation.gitlab.projecttoken'): 
 >> 
 Choose codegen model - 1 (default) or 2 (guided-aws): 
 >> 1
