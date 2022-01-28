@@ -1,136 +1,83 @@
 {
     "typeName": "CloudFormation::GitLab::Project",
-    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+    "description": "Gitlab Project Management",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
     "definitions": {
-        "InitechDateFormat": {
-            "$comment": "Use the `definitions` block to provide shared resource property schemas",
-            "type": "string",
-            "format": "date-time"
-        },
-        "Memo": {
+        "Project": {
             "type": "object",
             "properties": {
-                "Heading": {
-                    "type": "string"
-                },
-                "Body": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false
-        },
-        "Tag": {
-            "description": "A key-value pair to associate with a resource.",
-            "type": "object",
-            "properties": {
-                "Key": {
+                "Name": {
                     "type": "string",
-                    "description": "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
+                    "description": "Name of the project to be created.",
                     "minLength": 1,
                     "maxLength": 128
                 },
-                "Value": {
+                "Description": {
                     "type": "string",
-                    "description": "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _, ., /, =, +, and -.",
-                    "minLength": 0,
-                    "maxLength": 256
+                    "description": "Description of the project to be created."
                 }
             },
             "required": [
-                "Key",
-                "Value"
+                "Name"
             ],
             "additionalProperties": false
         }
     },
     "properties": {
-        "TPSCode": {
-            "description": "A TPS Code is automatically generated on creation and assigned as the unique identifier.",
+        "Name": {
+            "description": "The name of the project",
             "type": "string",
-            "pattern": "^[A-Z]{3,5}[0-9]{8}-[0-9]{4}$"
+            "maxLength": 64
         },
-        "Title": {
-            "description": "The title of the TPS report is a mandatory element.",
+        "ID": {
+            "description": "The ID of the project",
+            "type": "integer"
+        },
+        "Server": {
+            "description": "GitLab Server address",
             "type": "string",
-            "minLength": 20,
-            "maxLength": 250
+            "maxLength": 64
         },
-        "CoverSheetIncluded": {
-            "description": "Required for all TPS Reports submitted after 2/19/1999",
-            "type": "boolean"
-        },
-        "DueDate": {
-            "$ref": "#/definitions/InitechDateFormat"
-        },
-        "ApprovalDate": {
-            "$ref": "#/definitions/InitechDateFormat"
-        },
-        "Memo": {
-            "$ref": "#/definitions/Memo"
-        },
-        "SecondCopyOfMemo": {
-            "description": "In case you didn't get the first one.",
-            "$ref": "#/definitions/Memo"
-        },
-        "TestCode": {
+        "Token": {
+            "description": "Authentication Token",
             "type": "string",
-            "enum": [
-                "NOT_STARTED",
-                "CANCELLED"
-            ]
-        },
-        "Authors": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        },
-        "Tags": {
-            "description": "An array of key-value pairs to apply to this resource.",
-            "type": "array",
-            "uniqueItems": true,
-            "insertionOrder": false,
-            "items": {
-                "$ref": "#/definitions/Tag"
-            }
+            "maxLength": 64
         }
     },
     "additionalProperties": false,
     "required": [
-        "TestCode",
-        "Title"
+        "Name"
     ],
     "readOnlyProperties": [
-        "/properties/TPSCode"
+        "/properties/Server"
     ],
     "primaryIdentifier": [
-        "/properties/TPSCode"
+        "/properties/ID"
     ],
     "handlers": {
         "create": {
             "permissions": [
-                "initech:CreateReport"
+                "gitlab:CreateProject"
             ]
         },
         "read": {
             "permissions": [
-                "initech:DescribeReport"
+                "gitlab:DescribeProject"
             ]
         },
         "update": {
             "permissions": [
-                "initech:UpdateReport"
+                "gitlab:UpdateProject"
             ]
         },
         "delete": {
             "permissions": [
-                "initech:DeleteReport"
+                "gitlab:DeleteProject"
             ]
         },
         "list": {
             "permissions": [
-                "initech:ListReports"
+                "gitlab:ListProjects"
             ]
         }
     }
