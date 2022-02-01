@@ -11,6 +11,12 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>../gitlab-group-resource</module>
+        <module>../gitlab-projecttoken-resource</module>
+        <module>../gitlab-project-resource</module>
+    </modules>
+
     <repositories>
         <repository>
             <id>jitpack</id> <!-- needed for everit-org json-schema -->
@@ -99,12 +105,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <modules>
-        <module>../gitlab-group-resource</module>
-        <!--        <module>../gitlab-project-resource</module>-->
-        <!--        <module>../gitlab-user-resource</module>-->
-    </modules>
 
     <build>
         <plugins>

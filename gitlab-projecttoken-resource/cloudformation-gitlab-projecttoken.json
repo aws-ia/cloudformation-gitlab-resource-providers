@@ -1,0 +1,94 @@
+{
+    "typeName": "CloudFormation::GitLab::ProjectToken",
+    "description": "Gitlab Project Token Management.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+
+    },
+    "properties": {
+        "Token": {
+            "description": "Authentication Token",
+            "type": "string",
+            "maxLength": 64
+        },
+        "ProjectID": {
+            "description": "Project unique identifier, used as path variable in the URL-encoded path of the project",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Server": {
+            "description": "GitLab Server address",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Name": {
+            "description": "The name of the project access token ",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Scopes": {
+            "description" : "List of scopes. Options: [api, read_api, read_registry, write_registry,read_repository,write_repository].",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string"
+            }
+        },
+        "ExpiresAt": {
+            "description" : "The token expires at midnight UTC on this date",
+            "type": "string",
+            "pattern" : "^\\d{4}-([0][1-9]|1[0-2])-([0-2][1-9]|[1-3]0|3[01])$",
+            "maxLength": 10
+        },
+        "AccessLevel": {
+            "description": "A valid access level. Default value is 40 (Maintainer). Other allowed values are 10 (Guest), 20 (Reporter), and 30 (Developer).",
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 40,
+            "default": 40
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Token",
+        "Server",
+        "ProjectID",
+        "Name",
+        "Scopes"
+    ],
+    "readOnlyProperties": [
+        "/properties/Token",
+        "/properties/ProjectID",
+        "/properties/Server"
+    ],
+    "primaryIdentifier": [
+        "/properties/ProjectID"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "gitlab:CreateProjectToken"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "gitlab:DescribeProjectToken"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "gitlab:UpdateProjectToken"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "gitlab:DeleteProjectToken"
+            ]
+        },
+        "list": {
+            "permissions": [
+                "gitlab:ListProjectTokens"
+            ]
+        }
+    }
+}
