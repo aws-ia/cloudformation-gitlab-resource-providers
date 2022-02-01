@@ -1,10 +1,14 @@
 package com.cloudformation.gitlab.projecttoken;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import software.amazon.cloudformation.proxy.StdCallbackContext;
 
-@lombok.Getter
-@lombok.Setter
-@lombok.ToString
-@lombok.EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = true)
 public class CallbackContext extends StdCallbackContext {
 }
