@@ -1,20 +1,12 @@
 package com.cloudformation.gitlab.core;
 
+import java.util.List;
+import java.util.Optional;
 
-import org.gitlab4j.api.GitLabApi;
-import org.gitlab4j.api.models.Project;
+public interface GitLabService<T> {
 
-public class GitLabService {
+    List<T> getAll();
 
-    GitLabApi gitLabApi;
-
-    public GitLabService(String url, String token) {
-        gitLabApi = new GitLabApi(url, token);
-    }
-
-    public Project getGroup(String groupId) {
-        return null;
-    }
-
+    Optional<T> getById(Integer id);
 
 }

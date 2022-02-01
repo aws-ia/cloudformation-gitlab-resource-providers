@@ -1,0 +1,30 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template describes an example resource type for creating a gitlab project
+Parameters:
+  Name:
+    Default: test_project
+    Description: Project name
+    MinLength: '1'
+    Type: String
+  Server:
+    Description: server address
+    Default: https://gitlab.com
+    MinLength: '1'
+    Type: String
+  Token:
+    Description: authentication token
+    Default: glpat-5YPGKq-7gtk5R3GA6stH
+    MinLength: '1'
+    Type: String
+Resources:
+  GitlabNewProject:
+    Type: CloudFormation::GitLab::Project
+    Properties:
+      Name: !Ref 'Name'
+      Server: !Ref 'Server'
+      Token: !Ref 'Token'
+Outputs:
+  Name:
+    Description: Project name
+    Value: !Ref 'Name'
