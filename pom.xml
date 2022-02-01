@@ -14,9 +14,6 @@
     <modules>
         <module>gitlab-core</module>
         <module>gitlab-resource-parent</module>
-<!--        <module>gitlab-group-resource</module>-->
-        <!--        <module>gitlab-project-resource</module>-->
-        <!--        <module>gitlab-user-resource</module>-->
     </modules>
 
     <properties>
@@ -34,4 +31,20 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <defaultGoal>clean install</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-Xlint:all,-options,-processing</arg>
+                        <arg>-Werror</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
