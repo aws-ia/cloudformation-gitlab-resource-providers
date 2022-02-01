@@ -15,7 +15,7 @@ brew install python
 ```
 The `cfn` and its dependencies must be installed in each resource module, because it analyzes and (re)generates source files based on context.
 
-### Creating a resource module
+## Creating a resource module
 
 Create the directory for your resource named `gitlab-{resource_name}-resource`. In the terminal, enter this directory and install `cfn` but running the following:
 
@@ -80,17 +80,114 @@ Initialized a new project in /{workspace}/cloudformation-gitlab/gitlab-project-u
 
 **Note 2:** Or you could duplicate an existing module and replace the resource name everywhere. :)
 
+Now that you have a module modelling your resource, the next step is to develop and test your implementation. 
 
+## Important observation
 
+**Note:** When running `cfn init` the resource type's schema file is generated that is named `cloudformation-gitlab-{resource-name}.json`. Do not rename this file! Renaming will cause `cfn` to malfunction and complain about not finding the resource model. 
 
+This file is referenced in the `pom.xml` file and it **must** be part of the resulting artifact, otherwise when creating a stack using the resource a `NullPointerException` will be thrown.
 
-Congratulations on starting development! Next steps:
+## Building the project
 
-1. Write the JSON schema describing your resource, `cloudformation-gitlab-project.json`
-1. Implement your resource handlers.
+The code uses [Lombok](https://projectlombok.org/), and [you need to install IDE integrations](https://projectlombok.org/setup/overview) to enable auto-complete for Lombok-annotated classes. For example, in IntelliJ IDEA you need to check that the Lombok plugin is installed and enabled, and that `annotation processing` is enabled for the project.
 
-The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
+You can build the full project or modules independently by running:
+```bash
+mvn clean install
+```
 
-> Please don't modify files under `target/generated-sources/rpdk`, as they will be automatically overwritten.
+The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: 
 
-The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/setup/overview) to enable auto-complete for Lombok-annotated classes.
+```bash
+cfn generate
+```
+
+## AWS CloudFormation resources
+
+A resource type you create is treated as a first-class citizen within CloudFormation: you can manage your resource as you would manage any AWS resource. The Software Development Life Cycle (SDLC) of a resource type can be summarized as follows:
+
+* First, you install prerequisite tools you will use for development and testing of your resource type.
+* You then start to develop and run tests for your resource type.
+* When ready, you submit the resource type to the AWS CloudFormation registry : you can choose to register a private or a public extension.
+* Manage your resource type with CloudFormation: you describe the resource type and its properties in your CloudFormation template(s), like you would do with any AWS resource type.
+
+If you use third-party resources in your infrastructure and applications, you can now model and automate those resources by developing them as resource types for use within CloudFormation. A `resource` type includes a resource type specification and handlers that control API interactions with the underlying AWS or third-party services. These interactions include create, read,update,delete, and list (CRUDL) operations for resources. Use resource types to model and provision resources using CloudFormation. Developers can use cfn-guard either locally while editing templates or automatically as part of a CI/CD pipeline to stop deployment of non-compliant resources. If resources in the template fail the rules, cfn-guard provides developers information to help identify non-compliant resources.
+
+### Resource Schema
+
+A Resource Schema is a JSON-formatted text file that defines properties and attributes for a specific resource type. This is an example of a resource schema
+```json
+{
+    "typeName": "myORG::myService::myResource",
+    "properties": {
+        "Name": {
+            "description": "The name of the resource.",
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{0,64}$",
+            "maxLength": 64
+        }
+    },
+    "createOnlyProperties": [
+        "/properties/Name"
+    ],
+    "identifiers": [
+        [
+            "/properties/Name"
+        ]
+    ],
+    "additionalProperties": false
+}
+
+```
+
+In order to be considered valid, your resource type's schema must adhere to the [Resource type definition schema](https://github.com/aws-cloudformation/cloudformation-cli/blob/master/src/rpdk/core/data/schema/provider.definition.schema.v1.json)
+This meta-schema provides a means of validating your resource specification during resource development.
+
+Once you have defined your resource schema, you can use the CloudFormation CLI `validate` command to verify that the resource schema is valid.
+
+```bash
+cfn validate
+```
+
+In terms of testing, the resource schema also determines:
+
+What unit test stubs are generated in your resource package, and what contract tests are appropriate to run for the resource. When you run the CloudFormation CLI `generate` command, the CloudFormation CLI generates empty unit tests based on the properties of the resource and their attributes.
+
+Which contract tests are appropriate for CloudFormation CLI to run for your resources. When you run the `test`  command, the CloudFormation CLI runs the appropriate contract tests, based on which handlers are included in your resource schema. To learn more about modeling a resource type, see the Modeling resource types for use in AWS CloudFormation  page.
+
+### Templates
+
+AWS CloudFormation gives users an easy way to model, provision, and manage related AWS and third-party resources in a declarative language. AWS CloudFormation uses a template (i.e. Infrastructure as Code) for provisioning and managing resources. For more details on the service and language refer to the resources below.
+
+More reference information about templates can be found [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/template-reference.html).
+
+### Cloudformation CLI
+
+The CloudFormation Command Line Interface (CLI) is an open-source tool that enables you to develop and test AWS and third-party extensions, such as resource types or modules, and register them for use in AWS CloudFormation. The CloudFormation CLI provides a consistent way to model and provision both AWS and third-party extensions through CloudFormation. The CloudFormation CLI includes commands to manage each step of creating your extensions. For more information on CloudFormation CLI commands see, CloudFormation CLI referenceCloudFormation CLI reference .
+
+An extension is an artifact, registered in the CloudFormation registry, which augments the functionality of CloudFormation in a native manner. Extensions can be registered by Amazon, APN partners, AWS Marketplace sellers, and the developer community.
+
+You can use the CloudFormation CLI to register extensions – both those you create yourself, in addition to ones shared with you – with the CloudFormation registry. Extensions enable CloudFormation capabilities to create, provision, and manage these custom types in a safe and repeatable manner, just as you would any AWS resource. For more information on the CloudFormation registry, see Using the CloudFormation registry  in the CloudFormation User Guide.
+
+Reference:
+* [CloudFormation CLI](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/what-is-cloudformation-cli.html)
+* [CloudFormation registry](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html)
+
+## Modelling a Resource
+
+### Resource Schema
+
+When you initiate the resource type project, an example resource type schema file is included to help start you modeling your resource type.
+This is a JSON file named for your resource, and contains an example of a typical resource type schema.
+In this project the schema file is named `cloudformation-gitlab-{resource-name}.json`, where `{resource-name}` is a placeholder replacing an actual GitLab resource name such as : project, group, user, etc. You should customize this file according to the specifications of your resource. 
+
+## Resource Handlers
+
+With the Java data classes generated, we can now start writing the handlers that actually implement the resource’s functionality. When you generate your resource package, the CloudFormation CLI stubs out empty handler functions, each of which each corresponds to a specific event in the resource lifecycle. You add logic to these handlers to control what happens to your resource type at each stage of its lifecycle.
+
+* `create`: CloudFormation invokes this handler when the resource is initially created during stack create operations.
+* `read`: CloudFormation invokes this handler as part of a stack update operation when detailed information about the resource's current state is required.
+* `update`: CloudFormation invokes this handler when the resource is updated as part of a stack update operation.
+* `delete`: CloudFormation invokes this handler when the resource is deleted, either when the resource is deleted from the stack as part of a stack update operation, or the stack itself is deleted.
+* `list`: CloudFormation invokes this handler when summary information about multiple resources of this resource type is required.
