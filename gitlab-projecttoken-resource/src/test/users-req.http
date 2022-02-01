@@ -1,0 +1,43 @@
+ # ------------------------ Miscellaneous ------------------------ #
+### returns github version
+GET https://gitlab.com/api/v4/version
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+# curl --header "PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH" "https://gitlab.com/api/v4/version"
+###
+
+ # ------------------------ Users ------------------------ #
+### returns a list of projecttokens
+GET https://gitlab.com/api/v4/projecttokens
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+###
+
+### returns a projecttoken by projecttokenname
+GET https://gitlab.com/api/v4/projecttokens?projecttokenname=cloudsoft_cfn
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+###
+
+### returns projecttoken details by id
+GET https://gitlab.com/api/v4/projecttokens/10715260
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+###
+
+### returns details of the currently authneticated projecttoken
+GET https://gitlab.com/api/v4/projecttoken
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+###
+
+POST https://gitlab.com/api/v4/projecttokens
+Content-Type: application/json
+PRIVATE-TOKEN: glpat-5YPGKq-7gtk5R3GA6stH
+
+{
+  "admin": "true",
+  "can_create_group" : "true",
+  "email" : "iuliana@cloudsoftcorp.com",
+  "name" : "Iuliana CFN1",
+  "organization" : "Cloudsoft",
+  "projecttokenname" : "iuliana_cfn1",
+  "force_random_password" : "true",
+  "reset_password" : "true"
+}
+

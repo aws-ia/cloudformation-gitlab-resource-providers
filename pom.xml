@@ -29,6 +29,11 @@
             <artifactId>gitlab4j-api</artifactId>
             <version>4.19.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.gitlab4j</groupId>
+            <artifactId>gitlab4j-api</artifactId>
+            <version>4.19.0</version>
+        </dependency>
     </dependencies>
 
     <build>

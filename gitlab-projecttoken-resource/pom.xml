@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -11,9 +12,10 @@
         <relativePath>../gitlab-resource-parent/pom.xml</relativePath>
     </parent>
 
-    <name>Cloudformation Project Resource</name>
-    <artifactId>gitlab-project-resource</artifactId>
+    <name>Cloudformation Project Token Resource</name>
+    <artifactId>gitlab-projecttoken-resource</artifactId>
     <packaging>jar</packaging>
+
 
     <!-- `cfn` requires the dependency to be here, even though it's in the parent pom.xml -->
     <dependencies>
@@ -24,11 +26,13 @@
         </dependency>
     </dependencies>
 
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
                 <executions>
                     <execution>
                         <id>generate</id>
@@ -47,6 +51,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -65,6 +70,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.4</version>
                 <configuration>
                     <excludes>
                         <exclude>**/BaseConfiguration*</exclude>
@@ -118,13 +124,12 @@
             <resource>
                 <directory>${project.basedir}</directory>
                 <includes>
-                    <include>cloudformation-gitlab-project.json</include>
+                    <include>cloudformation-gitlab-projecttoken.json</include>
                 </includes>
             </resource>
         </resources>
         <finalName>
-            cloudformation-gitlab-project-handler-${project.version}
+            cloudformation-gitlab-projecttoken-handler-${project.version}
         </finalName>
     </build>
-
 </project>
