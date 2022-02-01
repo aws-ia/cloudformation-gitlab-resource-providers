@@ -33,7 +33,8 @@ public class CreateHandlerTest {
     public void handleRequest_SimpleSuccess() {
         final CreateHandler handler = new CreateHandler();
 
-        final ResourceModel model = ResourceModel.builder().build();
+        final ResourceModel model = ResourceModel.builder()
+                .accessToken("New AccessToken").build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)

@@ -6,6 +6,7 @@ env
 *.jar
 # Maven outputs
 .classpath
+*.swp
 
 # IntelliJ
 *.iml
