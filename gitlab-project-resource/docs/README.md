@@ -13,7 +13,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "CloudFormation::GitLab::Project",
     "Properties" : {
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
-        "<a href="#id" title="ID">ID</a>" : <i>Integer</i>,
+        "<a href="#server" title="Server">Server</a>" : <i>String</i>,
         "<a href="#token" title="Token">Token</a>" : <i>String</i>
     }
 }
@@ -25,7 +25,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: CloudFormation::GitLab::Project
 Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
-    <a href="#id" title="ID">ID</a>: <i>Integer</i>
+    <a href="#server" title="Server">Server</a>: <i>String</i>
     <a href="#token" title="Token">Token</a>: <i>String</i>
 </pre>
 
@@ -43,13 +43,15 @@ _Maximum_: <code>64</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### ID
+#### Server
 
-The ID of the project
+GitLab Server address
 
-_Required_: No
+_Required_: Yes
 
-_Type_: Integer
+_Type_: String
+
+_Maximum_: <code>64</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -57,7 +59,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 Authentication Token
 
-_Required_: No
+_Required_: Yes
 
 _Type_: String
 
@@ -69,7 +71,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ID.
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the Id.
 
 ### Fn::GetAtt
 
@@ -77,7 +79,7 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### Server
+#### Id
 
-GitLab Server address
+The ID of the project
 
