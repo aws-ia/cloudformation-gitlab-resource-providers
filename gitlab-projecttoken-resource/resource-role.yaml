@@ -23,11 +23,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "initech:CreateReport"
-                - "initech:DeleteReport"
-                - "initech:DescribeReport"
-                - "initech:ListReports"
-                - "initech:UpdateReport"
+                - "gitlab:CreateProjectToken"
+                - "gitlab:DeleteProjectToken"
+                - "gitlab:DescribeProjectToken"
+                - "gitlab:ListProjectTokens"
+                - "gitlab:UpdateProjectToken"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
