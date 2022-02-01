@@ -1,7 +1,9 @@
 package com.cloudformation.gitlab.project;
 
 import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -9,7 +11,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Objects;
 
-public class DeleteHandler extends BaseHandler<CallbackContext> {
+public class DeleteHandler extends BaseHandlerStd {
 
     @Override
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -20,36 +22,47 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        GitLabApi gitLabApi;
-        try{
-            if (Objects.isNull(model.getServer())){
-                return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                        .resourceModel(model)
-                        .status(OperationStatus.SUCCESS)
-                        .build();
-            } else if (!Objects.isNull(model.getToken())){
-                gitLabApi = new GitLabApi(model.getServer(), model.getToken());
-            } else {
-                return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                        .resourceModel(model)
-                        .status(OperationStatus.SUCCESS)
-                        .build();
-            }
-            if (!Objects.isNull(model.getID())){
-                gitLabApi.getProjectApi().deleteProject(model.getID());
-            }
+        ProgressEvent<ResourceModel, CallbackContext> pe;
 
-        } catch (Exception e){
-            logger.log("There was an error: " + e);
-            return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                    .resourceModel(model)
-                    .status(OperationStatus.SUCCESS)
-                    .build();
+        setGitLabApi(model);
+
+        // check api connection
+        pe = checkApiConnection(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            // api error
+            logger.log(String.format("Can't connect to the API with given credentials: %s, authentication token: %s",
+                    model.getServer(), model.getToken()));
+            return pe;
         }
 
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .resourceModel(model)
-            .status(OperationStatus.SUCCESS)
-            .build();
+        // check name supplied
+        pe = checkNameSupplied(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Name not supplied");
+            return pe;
+        }
+
+        // get all projects
+        pe = fetchAllProjects(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project fetching error");
+            return pe;
+        }
+
+        // check if project already exists
+        pe = checkProjectExists(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project does NOT exist");
+            return pe;
+        }
+
+        // delete project
+        pe = deleteProject(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project does NOT exist");
+            return pe;
+        }
+
+        return pe;
     }
 }

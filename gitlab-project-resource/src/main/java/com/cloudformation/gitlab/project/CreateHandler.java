@@ -1,16 +1,22 @@
 package com.cloudformation.gitlab.project;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import com.google.common.util.concurrent.TimeLimiter;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CreateHandler extends BaseHandler<CallbackContext> {
+public class CreateHandler extends BaseHandlerStd {
 
     @Override
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -21,46 +27,52 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        // create project using cli
-        GitLabApi gitLabApi;
-        try{
-            if (Objects.isNull(model.getServer())){
-                return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                        .resourceModel(model)
-                        .status(OperationStatus.SUCCESS)
-                        .build();
-            } else if (!Objects.isNull(model.getToken())){
-                gitLabApi = new GitLabApi(model.getServer(), model.getToken());
-            } else {
-                return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                        .resourceModel(model)
-                        .status(OperationStatus.SUCCESS)
-                        .build();
-            }
-            if (!Objects.isNull(model.getName())){
-                Project projectSpec = new Project()
-                        .withName(model.getName())
-                        .withDescription("Test description.")
-                        .withIssuesEnabled(true)
-                        .withMergeRequestsEnabled(true)
-                        .withWikiEnabled(true)
-                        .withSnippetsEnabled(true)
-                        .withPublic(true);
-                Project newProject = gitLabApi.getProjectApi().createProject(projectSpec);
-                model.setID(newProject.getId());
-            }
+        ProgressEvent<ResourceModel, CallbackContext> pe;
 
-        } catch (Exception e){
-            logger.log("There was an error: " + e);
+        setGitLabApi(model);
+
+        // check api connection
+        pe = checkApiConnection(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            // api error
+            logger.log(String.format("Can't connect to the API with given credentials: %s, authentication token: %s",
+                    model.getServer(), model.getToken()));
+            return pe;
+        }
+
+        // check name supplied
+        pe = checkNameSupplied(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Name not supplied");
+            return pe;
+        }
+
+        // get all projects
+        pe = fetchAllProjects(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project fetching error");
+            return pe;
+        }
+
+        // check if project already exists
+        pe = checkProjectExists(model);
+        if (pe.getStatus().equals(OperationStatus.SUCCESS)){
+            // if exists, it's bad
+            logger.log("Project already exists");
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .resourceModel(model)
-                    .status(OperationStatus.SUCCESS)
+                    .status(OperationStatus.FAILED)
+                    .errorCode(HandlerErrorCode.AlreadyExists)
                     .build();
         }
 
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .resourceModel(model)
-            .status(OperationStatus.SUCCESS)
-            .build();
+        // create new project
+        pe = createProject(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project creation error");
+            return pe;
+        }
+
+        return pe;
     }
 }

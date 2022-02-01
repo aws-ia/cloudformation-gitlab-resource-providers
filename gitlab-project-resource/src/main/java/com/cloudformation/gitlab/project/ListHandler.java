@@ -1,6 +1,9 @@
 package com.cloudformation.gitlab.project;
 
+import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -8,8 +11,10 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class ListHandler extends BaseHandler<CallbackContext> {
+public class ListHandler extends BaseHandlerStd {
 
     @Override
     public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -18,9 +23,33 @@ public class ListHandler extends BaseHandler<CallbackContext> {
         final CallbackContext callbackContext,
         final Logger logger) {
 
-        final List<ResourceModel> models = new ArrayList<>();
+        final ResourceModel model = request.getDesiredResourceState();
 
-        // TODO : put your code here
+        ProgressEvent<ResourceModel, CallbackContext> pe;
+
+        setGitLabApi(model);
+
+        // check api connection
+        pe = checkApiConnection(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            // api error
+            logger.log(String.format("Can't connect to the API with given credentials: %s, authentication token: %s",
+                    model.getServer(), model.getToken()));
+            return pe;
+        }
+
+        // get all projects
+        pe = fetchAllProjects(model);
+        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
+            logger.log("Project fetching error");
+            return pe;
+        }
+
+        // translate to resource models
+        List<Project> projects = getAllProjects();
+        final List<ResourceModel> models = projects.stream()
+                .map(project -> translateProjectToResourceModel(project, getGitLabApi()))
+                .collect(Collectors.toList());
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
             .resourceModels(models)
