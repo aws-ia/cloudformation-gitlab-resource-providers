@@ -33,8 +33,3 @@ Resources:
       GroupName: !Ref 'GroupName'
       ParentId: !Ref 'ParentId'
       Path: !Ref 'Path'
-
-Outputs:
-  GroupUID:
-    Description: ID of the newly created group
-    Value: !GetAtt MyResourceMH.UID
