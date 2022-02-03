@@ -20,6 +20,10 @@ public interface GitLabService<T, TP> {
      */
     void update(TP data);
 
+    /**
+     * Returns the list of all items of a certain type
+     * @return
+     */
     List<T> list();
 
     /**
@@ -29,6 +33,10 @@ public interface GitLabService<T, TP> {
      */
     Optional<T> getById(Integer id);
 
+    /**
+     * Verifies that the connection can be established by querying the current user
+     * @return
+     */
     boolean verifyConnection();
 
     /**
