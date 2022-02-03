@@ -1,5 +1,7 @@
 package com.cloudformation.gitlab.project;
 
+import com.cloudformation.gitlab.core.GitLabProjectService;
+import com.cloudformation.gitlab.core.GitLabServiceException;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -10,6 +12,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class ReadHandler extends BaseHandlerStd {
 
@@ -24,45 +27,17 @@ public class ReadHandler extends BaseHandlerStd {
 
         ProgressEvent<ResourceModel, CallbackContext> pe;
 
-        setGitLabApi(model);
-
-        // check api connection
-        pe = checkApiConnection(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            // api error
-            logger.log(String.format("Can't connect to the API with given credentials: %s, authentication token: %s",
-                    model.getServer(), model.getToken()));
-            return pe;
+        GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
+        try {
+            Optional<Project> toRead = gitLabService.getById(model.getId());
+            if (toRead.isPresent()){
+                Optional<Project> project = gitLabService.read(toRead.get());
+                if (!project.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
+            }
+        } catch (GitLabServiceException e){
+            logger.log("Error");
+            return failure(model,HandlerErrorCode.InternalFailure);
         }
-
-        // check name supplied
-        pe = checkNameSupplied(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Name not supplied");
-            return pe;
-        }
-
-        // get all projects
-        pe = fetchAllProjects(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Project fetching error");
-            return pe;
-        }
-
-        // check if project already exists
-        pe = checkProjectExists(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Project does NOT exist");
-            return pe;
-        }
-
-        // get project summary
-        pe = getProjectSummary(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Error getting summary");
-            return pe;
-        }
-
-        return pe;
+        return success(model);
     }
 }
