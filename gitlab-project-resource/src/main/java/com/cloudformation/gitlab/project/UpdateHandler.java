@@ -30,11 +30,7 @@ public class UpdateHandler extends BaseHandlerStd {
         final Map<String,Object> modelMap = translateResourceModelToMap(model);
 
         try {
-            Optional<Project> toUpdate = gitLabService.getById(model.getId());
-            if (toUpdate.isPresent()){
-                Optional<Project> project = gitLabService.update(toUpdate.get(), modelMap);
-                if (!project.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
-            }
+            gitLabService.update(modelMap);
         } catch (GitLabServiceException e){
             logger.log("Error: " + e.getMessage());
             return failure(model,HandlerErrorCode.InternalFailure);

@@ -35,7 +35,7 @@ public class ListHandler extends BaseHandlerStd {
             if (!optProjects.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
             projects = optProjects.get();
         } catch (GitLabServiceException e){
-            logger.log("Error");
+            logger.log("Error: " + e);
             return failure(model,HandlerErrorCode.InternalFailure);
         }
 
