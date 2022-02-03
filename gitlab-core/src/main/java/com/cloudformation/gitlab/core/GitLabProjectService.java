@@ -2,17 +2,13 @@ package com.cloudformation.gitlab.core;
 
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.Project;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 
-public class GitLabProjectService implements GitLabService<Project> {
+public class GitLabProjectService implements GitLabService<Project, Map<String,Object>> {
 
     GitLabApi gitLabApi;
 
@@ -21,27 +17,26 @@ public class GitLabProjectService implements GitLabService<Project> {
     }
 
     @Override
-    public Optional<Project> create(Map<String,Object> data){
-        Optional<Project> project = Optional.empty();
+    public Project create(Map<String,Object> data){
+        if (!data.containsKey("name")){
+            throw new GitLabServiceException("Name is needed to create a project!");
+        }
+        Project projectSpec = new Project()
+                .withName((String) data.get("name"))
+                .withIssuesEnabled(true)
+                .withMergeRequestsEnabled(true)
+                .withWikiEnabled(true)
+                .withSnippetsEnabled(true)
+                .withPublic(true);
         try {
-            if (!Objects.isNull(data.get("name"))){
-                Project projectSpec = new Project()
-                        .withName((String) data.get("name"))
-                        .withIssuesEnabled(true)
-                        .withMergeRequestsEnabled(true)
-                        .withWikiEnabled(true)
-                        .withSnippetsEnabled(true)
-                        .withPublic(true);
-                project = Optional.of(gitLabApi.getProjectApi().createProject(projectSpec));
-            }
+            return gitLabApi.getProjectApi().createProject(projectSpec);
         } catch (Exception e){
             throw new GitLabServiceException("Error creating project: " + data.get("name"), e);
         }
-        return project;
     }
 
     @Override
-    public void delete(Integer id){
+    public void deleteById(Integer id){
         try {
             gitLabApi.getProjectApi().deleteProject(id);
         } catch (Exception e){
@@ -51,67 +46,53 @@ public class GitLabProjectService implements GitLabService<Project> {
 
     @Override
     public void update(Map<String,Object> data){
+
+        if(!data.containsKey("id")) {
+            throw new GitLabServiceException("No Project id was specified!");
+        }
+        Optional<Project> projectFromApi = getById((Integer)data.get("id"));
+        Project item  = projectFromApi.orElseThrow( () -> new GitLabServiceException("Project to update does not exist!"));
+
+        if (!data.containsKey("name")){
+            throw new GitLabServiceException("A project cannot be updated to not have a name!");
+        }
+        String newName = (String) data.get("name");
+        if(newName != null && !newName.isEmpty() &&  !newName.equals(item.getName())) {
+            item.setName(newName);
+            item.setPath(newName);
+            item.setPathWithNamespace(item.getNamespace().getName() + '/' + newName);
+            String httpRepo = item.getHttpUrlToRepo();
+            item.setHttpUrlToRepo(httpRepo.substring(0, httpRepo.lastIndexOf('/') + 1) + newName + ".git");
+            String sshRepo = item.getSshUrlToRepo();
+            item.setSshUrlToRepo(sshRepo.substring(0, sshRepo.lastIndexOf('/') + 1) + newName + ".git");
+            String webUrl = item.getWebUrl();
+            item.setWebUrl(webUrl.substring(0, webUrl.lastIndexOf('/') + 1) + newName);
+        }
         try{
-            Project project = getById((int) data.get("id")).get();
-            if (!((Objects.isNull(project)) ||
-                    Objects.isNull(data.get("name")) || data.get("name").equals(project.getName()))){
-                String newName = (String) data.get("name");
-
-                // update name
-                project.setName(newName);
-                // set path
-                project.setPath(newName);
-                // set path with namespace
-                project.setPathWithNamespace(project.getNamespace().getName() + '/' + newName);
-                // update URL to repo
-                String httpRepo = project.getHttpUrlToRepo();
-                project.setHttpUrlToRepo(httpRepo.substring(0,httpRepo.lastIndexOf('/')+1) + newName + ".git");
-                // update SSH URL to repo
-                String sshRepo = project.getSshUrlToRepo();
-                project.setSshUrlToRepo(sshRepo.substring(0,sshRepo.lastIndexOf('/')+1) + newName + ".git");
-                // update web url
-                String webUrl = project.getWebUrl();
-                project.setWebUrl(webUrl.substring(0,webUrl.lastIndexOf('/')+1) + newName);
-
-                // update the project live
-                gitLabApi.getProjectApi().updateProject(project);
-            }
-
+            gitLabApi.getProjectApi().updateProject(item);
         } catch (Exception e){
-            throw new GitLabServiceException("Error updating project: " + data.get("id"), e);
+            throw new GitLabServiceException("Error updating project: " + item.getName(), e);
         }
     }
 
     @Override
-    public Optional<Project> read(Integer id){
-        Optional<Project> project = Optional.empty();
-        try{
-            Project item = gitLabApi.getProjectApi().getProject(id);
-            project = Optional.of(item);
-        } catch (Exception e){
+    public Optional<Project> getById(Integer id){
+        try {
+            return Optional.of(gitLabApi.getProjectApi().getProject(id));
+        } catch (GitLabApiException e){
+             if(e.getHttpStatus() == 404) {
+                 return Optional.empty();
+             }
             throw new GitLabServiceException("Error reading project: " + id, e);
         }
-        return project;
     }
 
     @Override
-    public Optional<List<Project>> list(){
-        Optional<List<Project>> projects = Optional.empty();
+    public List<Project> list() {
         try {
-            List<Project> prjs = gitLabApi.getProjectApi().getOwnedProjects();
-            projects = Optional.of(prjs);
-        } catch (Exception e){
-            throw new GitLabServiceException("Error listing projects:", e);
-        }
-        return projects;
-    }
-
-    @Override
-    public Optional<Project> getById(Integer id) {
-        try {
-            return  Optional.of(gitLabApi.getProjectApi().getProject(id));
+            return  gitLabApi.getProjectApi().getOwnedProjects();
         } catch (GitLabApiException e) {
-            throw new GitLabServiceException("Error retrieving Project with id" + id, e);
+            throw new GitLabServiceException("Error listing projects.", e);
         }
     }
 
@@ -124,4 +105,5 @@ public class GitLabProjectService implements GitLabService<Project> {
         }
         return true;
     }
+
 }

@@ -35,9 +35,8 @@ public class CreateHandler extends BaseHandlerStd {
 
         GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
         try {
-            Optional<Project> project = gitLabService.create(modelMap);
-            if (!project.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
-            model.setId(project.get().getId());
+            Project project = gitLabService.create(modelMap);
+            model.setId(project.getId());
         } catch (GitLabServiceException e){
             logger.log("Error");
             return failure(model,HandlerErrorCode.InternalFailure);

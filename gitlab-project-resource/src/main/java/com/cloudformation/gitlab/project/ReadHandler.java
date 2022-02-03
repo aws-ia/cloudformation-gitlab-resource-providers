@@ -29,7 +29,7 @@ public class ReadHandler extends BaseHandlerStd {
 
         GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
         try {
-            Optional<Project> project = gitLabService.read(model.getId());
+            Optional<Project> project = gitLabService.getById(model.getId());
             if (!project.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
         } catch (GitLabServiceException e){
             logger.log("Error");

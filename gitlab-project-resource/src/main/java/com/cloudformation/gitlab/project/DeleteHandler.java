@@ -27,7 +27,7 @@ public class DeleteHandler extends BaseHandlerStd {
 
         GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
         try {
-            gitLabService.delete(model.getId());
+            gitLabService.deleteById(model.getId());
         } catch (GitLabServiceException e){
             logger.log("Error: " + e);
             return failure(model,HandlerErrorCode.InternalFailure);

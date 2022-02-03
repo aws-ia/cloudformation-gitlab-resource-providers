@@ -29,21 +29,16 @@ public class ListHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
 
         GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
-        List<Project> projects;
         try {
-            Optional<List<Project>> optProjects = gitLabService.list();
-            if (!optProjects.isPresent()) return failure(model,HandlerErrorCode.InternalFailure);
-            projects = optProjects.get();
+            List<Project> projects = gitLabService.list();
+            // translate to resource models
+            final List<ResourceModel> models = projects.stream()
+                    .map(project -> translateProjectToResourceModel(project))
+                    .collect(Collectors.toList());
+            return success(models);
         } catch (GitLabServiceException e){
             logger.log("Error: " + e);
             return failure(model,HandlerErrorCode.InternalFailure);
         }
-
-        // translate to resource models
-        final List<ResourceModel> models = projects.stream()
-                .map(project -> translateProjectToResourceModel(project))
-                .collect(Collectors.toList());
-
-        return success(models);
     }
 }
