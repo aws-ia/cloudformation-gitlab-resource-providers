@@ -1,5 +1,6 @@
 package com.cloudformation.gitlab.projecttoken;
 
+import org.junit.jupiter.api.Disabled;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest {
 

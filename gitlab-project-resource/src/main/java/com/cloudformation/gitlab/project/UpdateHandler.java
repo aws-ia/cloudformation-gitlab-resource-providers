@@ -1,5 +1,7 @@
 package com.cloudformation.gitlab.project;
 
+import com.cloudformation.gitlab.core.GitLabProjectService;
+import com.cloudformation.gitlab.core.GitLabServiceException;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -9,7 +11,9 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class UpdateHandler extends BaseHandlerStd {
 
@@ -22,47 +26,15 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        ProgressEvent<ResourceModel, CallbackContext> pe;
+        GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
+        final Map<String,Object> modelMap = translateResourceModelToMap(model);
 
-        setGitLabApi(model);
-
-        // check api connection
-        pe = checkApiConnection(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            // api error
-            logger.log(String.format("Can't connect to the API with given credentials: %s, authentication token: %s",
-                    model.getServer(), model.getToken()));
-            return pe;
+        try {
+            gitLabService.update(modelMap);
+        } catch (GitLabServiceException e){
+            logger.log("Error: " + e.getMessage());
+            return failure(model,HandlerErrorCode.InternalFailure);
         }
-
-        // check name supplied
-        pe = checkNameSupplied(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Name not supplied");
-            return pe;
-        }
-
-        // get all projects
-        pe = fetchAllProjects(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Project fetching error");
-            return pe;
-        }
-
-        // check if project already exists
-        pe = checkProjectExists(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Project does NOT exist");
-            return pe;
-        }
-
-        // update project
-        pe = updateProject(model);
-        if (!pe.getStatus().equals(OperationStatus.SUCCESS)){
-            logger.log("Project could not be updated");
-            return pe;
-        }
-
-        return pe;
+        return success(model);
     }
 }

@@ -1,5 +1,7 @@
 package com.cloudformation.gitlab.project;
 
+import com.cloudformation.gitlab.core.GitLabProjectService;
+import org.junit.jupiter.api.Assertions;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -35,22 +37,15 @@ public class UpdateHandlerTest {
     // API connection tests
     @Test
     public void handleRequest_ConnectionSuccess() {
-        final CreateHandler handler = new CreateHandler();
-
         // no name supplied, so no project manipulation attempt but successful connection is still tested
         final ResourceModel model = ResourceModel.builder()
                 .server("https://gitlab.com")
                 .token("glpat-5YPGKq-7gtk5R3GA6stH")
                 .build();
 
-        handler.setGitLabApi(model);
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.checkApiConnection(model);
+        GitLabProjectService service = new GitLabProjectService(model.getServer(), model.getToken());
+        Assertions.assertTrue(service.verifyConnection());
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
     }
 
     @Test
@@ -79,21 +74,12 @@ public class UpdateHandlerTest {
     }
 
     public void testApiFailure(ResourceModel model) {
-        final CreateHandler handler = new CreateHandler();
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NetworkFailure);
+        try{
+            GitLabProjectService service = new GitLabProjectService(model.getServer(), model.getToken());
+            Assertions.assertFalse(service.verifyConnection());
+        } catch (Exception e){
+            logger.log("Error creating service: " + e);
+        }
     }
 
 
@@ -189,33 +175,6 @@ public class UpdateHandlerTest {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
-    }
-
-    @Test
-    public void handleRequest_ApiNotUpdatedFailure(){
-        final UpdateHandler handler = new UpdateHandler();
-
-        Instant instant = Instant.now();
-        final ResourceModel model = ResourceModel.builder()
-                .server("https://gitlab.com")
-                .token("incorrect token")
-                .build();
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getCallbackContext()).isNull();
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NetworkFailure);
     }
 
     public void prepare(ResourceHandlerRequest<ResourceModel> request){
