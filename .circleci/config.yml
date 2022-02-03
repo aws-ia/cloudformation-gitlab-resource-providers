@@ -2,25 +2,94 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
-jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+# An executor type defines the underlying technology or environment in which to run a job.
+executors:
+  cfng-executor: # default executor image for most cloudsoft projects
     docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    - image: $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID
+      auth:
+        username: $DOCKER_REGISTRY_USERNAME
+        password: $DOCKER_REGISTRY_PASSWORD
+
+orbs:
+  slack: circleci/slack@4.4.4
+
+slack-config:
+  job-failed-notification: &job-failed-notification
+    event: fail
+    channel: 'amp-6-1'
+    mentions: "<@Mateusz Zan>, <@Iuliana Cosmina>, @nakomis "
+    custom: |
+      {
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": ":rotating_light: _Uh-oh_, `cloudformation-gitlab` is broken. Calling reinforcements! :technologist:"
+            },
+            "accessory": {
+              "type": "button",
+              "text": {
+                "type": "plain_text",
+                "text": "Investigate",
+                "emoji": true
+              },
+              "url": "${CIRCLE_BUILD_URL}",
+              "action_id": "investigate-build-failure"
+            }
+          },
+          {
+            "type": "section",
+            "fields": [
+              {
+                "type": "mrkdwn",
+                "text": "*Job*\n ${CIRCLE_JOB}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*Branch*\n ${CIRCLE_BRANCH}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*Author*\n${CIRCLE_USERNAME}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*Commit SHA*\n ${CIRCLE_SHA1}"
+              }
+            ]
+          }
+        ]
+      }
+
+commands: # re-usable as steps in any job in this config
+  build:
     steps:
-      - checkout
-      - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+    # Checkout the code as the first step.
+    - checkout
+    # Build and test
+    - run:
+        name: Build & test
+        command: mvn -s .circleci/circleci-m2-settings.xml -B clean package
+    - slack/notify:
+        <<: *job-failed-notification
+
+
+jobs:
+  # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
+  build-and-test:
+    executor: cfng-executor
+    steps:
+    - build
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  cloudformation-gitlab-build: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - say-hello
+    - build-and-test: # this builds everytime something changes on this repo
+        context:
+        - cloudsoft-artifactory
+        - cloudsoft-sonatype
