@@ -1,5 +1,6 @@
 package com.cloudformation.gitlab.core;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
@@ -57,7 +58,7 @@ public class GitLabProjectService implements GitLabService<Project, Map<String,O
             throw new GitLabServiceException("A project cannot be updated to not have a name!");
         }
         String newName = (String) data.get("name");
-        if(newName != null && !newName.isEmpty() &&  !newName.equals(item.getName())) {
+        if(StringUtils.isNotBlank(newName) && !newName.equals(item.getName())) {
             item.setName(newName);
             item.setPath(newName);
             item.setPathWithNamespace(item.getNamespace().getName() + '/' + newName);
