@@ -8,6 +8,7 @@ import org.gitlab4j.api.models.Project;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GitLabGroupService implements GitLabService<Group> {
@@ -19,9 +20,27 @@ public class GitLabGroupService implements GitLabService<Group> {
     }
 
     @Override
-    public List<Group> getAll() {
-        //TODO
-        return new ArrayList<>();
+    public Optional<Group> create(Map<String,Object> data){
+        return null;
+    }
+
+    @Override
+    public void delete(Integer id){
+    }
+
+    @Override
+    public void update(Map<String,Object> data){
+
+    }
+
+    @Override
+    public Optional<Group> read(Integer id){
+        return null;
+    }
+
+    @Override
+    public Optional<List<Group>> list(){
+        return null;
     }
 
     @Override
@@ -35,6 +54,16 @@ public class GitLabGroupService implements GitLabService<Group> {
             // anythign else throw GitLabServiceException("Error reteiving Group with id" + id, e);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public boolean verifyConnection(){
+        try{
+            gitLabApi.getUserApi().getCurrentUser();
+        } catch(Exception e){
+            return false;
+        }
+        return true;
     }
 
 }
