@@ -71,7 +71,7 @@ commands: # re-usable as steps in any job in this config
     # Build and test
     - run:
         name: Install cfn
-        command: python3 -m venv env & source env/bin/activate & pip3 install cloudformation-cli cloudformation-cli-java-plugin
+        command: sudo apt-get install python3-venv --assume-yes && python3 -m venv env & source env/bin/activate & pip3 install cloudformation-cli cloudformation-cli-java-plugin
     - run:
         name: Build & test
         command: mvn -s .circleci/circleci-m2-settings.xml clean install
