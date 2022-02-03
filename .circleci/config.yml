@@ -17,7 +17,7 @@ orbs:
 slack-config:
   job-failed-notification: &job-failed-notification
     event: fail
-    channel: 'amp-6-1'
+    channel: 'custeng-aws-cloudformation'
     mentions: "<@Mateusz Zan>, <@Iuliana Cosmina>, @nakomis "
     custom: |
       {
