@@ -71,7 +71,7 @@ commands: # re-usable as steps in any job in this config
     # Build and test
     - run:
         name: Build & test
-        command: mvn -s .circleci/circleci-m2-settings.xml -B clean package
+        command: mvn -s .circleci/circleci-m2-settings.xml clean install
     - slack/notify:
         <<: *job-failed-notification
 
