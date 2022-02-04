@@ -1,8 +1,6 @@
 package com.cloudformation.gitlab.project;
 
 import com.cloudformation.gitlab.core.GitLabProjectService;
-import com.cloudformation.gitlab.core.GitLabService;
-import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.models.Project;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
@@ -11,12 +9,10 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
