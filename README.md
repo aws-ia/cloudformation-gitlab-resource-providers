@@ -156,6 +156,65 @@ What unit test stubs are generated in your resource package, and what contract t
 
 Which contract tests are appropriate for CloudFormation CLI to run for your resources. When you run the `test`  command, the CloudFormation CLI runs the appropriate contract tests, based on which handlers are included in your resource schema. To learn more about modeling a resource type, see the Modeling resource types for use in AWS CloudFormation  page.
 
+### Type Configuration
+Additionally, in the Resource Schema we can specify a type configuration, which allows us to pass authentication credentials for the GitLab account outside of CloudFormation template.
+
+In order to achieve that, we should modify the resource schema to have a `typeConfiguration`:
+```json
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAuthentication": {
+                "$ref": "#/definitions/Credentials"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAuthentication"
+        ]
+    }
+```
+The configuration above refers to a `Credentials` definition so this needs to be specified as well in the resource schema, as follows:
+```json
+"definitions": {
+  "Credentials": {
+    "type": "object",
+    "properties": {
+      "HostUrl": {
+        "description": "URL of the GitLab Server",
+        "type": "string"
+      },
+      "AuthToken": {
+        "description": "Authentication Token",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  }
+}
+```
+Above, we have a definition for a `Credentials` object with 2 properties: `HostUrl` and `AuthToken`. 
+
+Using `cfn generate` on such schema, `TypeConfigurationModel` and `Credentials` classes are auto generated, with the former containing an object of the latter.
+In order to use the Credentials in the handlers, we pass the `TypeConfigurationModel` to `handleRequest()` and we can then use it as follows:
+```
+TypeConfigurationModel tcm; //passed to the handleRequest() method
+Credentials credentials = tcm.getGitLabAuthentication();
+credentials.getHostUrl();
+credentials.getAuthToken();
+```
+
+Once the handlers are implemented to use the `typeConfiguration`, we can set the credentials using the `AWS cli`:
+```
+aws cloudformation set-type-configuration \
+    --region eu-west-1 \
+    --type RESOURCE \
+    --type-name CloudFormation::GitLab::Project\
+    --configuration-alias default \
+    --configuration "{\"GitLabAuthentication\": {\"HostUrl\": \"https://gitlab.com\", \"AuthToken\": \"glpat-5YPGKq-7gtk5R3GA6stH\"}}"
+```
+
+Then you can deploy the stack using your original input and credentials are pulled from the type configuration specified above.
+
 ### Templates
 
 AWS CloudFormation gives users an easy way to model, provision, and manage related AWS and third-party resources in a declarative language. AWS CloudFormation uses a template (i.e. Infrastructure as Code) for provisioning and managing resources. For more details on the service and language refer to the resources below.

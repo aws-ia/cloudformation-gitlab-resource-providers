@@ -13,6 +13,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,11 +25,14 @@ public class ListHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final Logger logger) {
+        final Logger logger,
+        final TypeConfigurationModel tcm) {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
+        Credentials creds = tcm.getGitLabAuthentication();
+        final GitLabProjectService gitLabService = initGitLabService(creds.getHostUrl(),creds.getAuthToken());
+
         try {
             List<Project> projects = gitLabService.list();
             // translate to resource models

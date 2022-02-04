@@ -22,12 +22,14 @@ public class UpdateHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final Logger logger) {
+        final Logger logger,
+        final TypeConfigurationModel tcm) {
 
         final ResourceModel model = request.getDesiredResourceState();
-
-        GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
         final Map<String,Object> modelMap = translateResourceModelToMap(model);
+
+        Credentials creds = tcm.getGitLabAuthentication();
+        final GitLabProjectService gitLabService = initGitLabService(creds.getHostUrl(),creds.getAuthToken());
 
         try {
             gitLabService.update(modelMap);

@@ -13,8 +13,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "CloudFormation::GitLab::Project",
     "Properties" : {
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
-        "<a href="#server" title="Server">Server</a>" : <i>String</i>,
-        "<a href="#token" title="Token">Token</a>" : <i>String</i>
     }
 }
 </pre>
@@ -25,8 +23,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: CloudFormation::GitLab::Project
 Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
-    <a href="#server" title="Server">Server</a>: <i>String</i>
-    <a href="#token" title="Token">Token</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -34,30 +30,6 @@ Properties:
 #### Name
 
 The name of the project
-
-_Required_: Yes
-
-_Type_: String
-
-_Maximum_: <code>64</code>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### Server
-
-GitLab Server address
-
-_Required_: Yes
-
-_Type_: String
-
-_Maximum_: <code>64</code>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### Token
-
-Authentication Token
 
 _Required_: Yes
 

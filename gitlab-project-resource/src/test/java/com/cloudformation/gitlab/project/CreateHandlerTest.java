@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 
 import java.time.Instant;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -39,61 +38,28 @@ public class CreateHandlerTest {
     // API connection tests
     @Test
     public void handleRequest_ConnectionSuccess() {
-        // no name supplied, so no project manipulation attempt but successful connection is still tested
-        final ResourceModel model = ResourceModel.builder()
-                .server("https://gitlab.com")
-                .token("glpat-5YPGKq-7gtk5R3GA6stH")
-                .build();
-
-        GitLabProjectService service = new GitLabProjectService(model.getServer(), model.getToken());
+        final Credentials credentials = new Credentials("https://gitlab.com","glpat-5YPGKq-7gtk5R3GA6stH");
+        GitLabProjectService service = new GitLabProjectService(credentials.getHostUrl(), credentials.getAuthToken());
         Assertions.assertTrue(service.verifyConnection());
-
     }
 
     @Test
-    public void handleRequest_ApiNoServerFailure() {
-        final ResourceModel model = ResourceModel.builder()
-                .token("glpat-5YPGKq-7gtk5R3GA6stH")
-                .build();
-        testApiFailure(model);
-    }
-
-    @Test
-    public void handleRequest_ApiNoTokenFailure() {
-        final ResourceModel model = ResourceModel.builder()
-                .server("https://gitlab.com")
-                .build();
-        testApiFailure(model);
-    }
-
-    @Test
-    public void handleRequest_IncorrectDetailsFailure() {
-        final ResourceModel model = ResourceModel.builder()
-                .server("jfhwbeiufbweuf.hsb")
-                .token("glpgerat-gegreg-gggerewrgergegreg")
-                .build();
-        testApiFailure(model);
-    }
-
-    public void testApiFailure(ResourceModel model) {
-        try{
-            GitLabProjectService service = new GitLabProjectService(model.getServer(), model.getToken());
-            Assertions.assertFalse(service.verifyConnection());
-        } catch (Exception e){
-            logger.log("Error creating service: " + e);
-        }
+    public void handleRequest_ConnectionFailure() {
+        final Credentials credentials = new Credentials("https://gitlab.com","incorrect token");
+        GitLabProjectService service = new GitLabProjectService(credentials.getHostUrl(), credentials.getAuthToken());
+        Assertions.assertFalse(service.verifyConnection());
     }
 
     // project creation tests
     @Test
     public void handleRequest_ProjectCreatedSuccess() {
         final CreateHandler handler = new CreateHandler();
+        final Credentials credentials = new Credentials("https://gitlab.com","glpat-5YPGKq-7gtk5R3GA6stH");
+        final TypeConfigurationModel tcm = TypeConfigurationModel.builder().gitLabAuthentication(credentials).build();
 
         Instant instant = Instant.now();
         final ResourceModel model = ResourceModel.builder()
                 .name("test-project-" + instant.toEpochMilli())
-                .server("https://gitlab.com")
-                .token("glpat-5YPGKq-7gtk5R3GA6stH")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -101,10 +67,10 @@ public class CreateHandlerTest {
                 .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
+                = handler.handleRequest(proxy, request, null, logger, tcm);
 
         // delete the project created
-        cleanup(request);
+        cleanup(request, tcm);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -119,12 +85,12 @@ public class CreateHandlerTest {
     @Test
     public void handleRequest_ProjectExistsFailure() {
         final CreateHandler handler = new CreateHandler();
+        final Credentials credentials = new Credentials("https://gitlab.com","glpat-5YPGKq-7gtk5R3GA6stH");
+        final TypeConfigurationModel tcm = TypeConfigurationModel.builder().gitLabAuthentication(credentials).build();
 
         Instant instant = Instant.now();
         final ResourceModel model = ResourceModel.builder()
                 .name("test-project-" + instant.toEpochMilli())
-                .server("https://gitlab.com")
-                .token("glpat-5YPGKq-7gtk5R3GA6stH")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -133,16 +99,16 @@ public class CreateHandlerTest {
 
         // create project - OK
         final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
+                = handler.handleRequest(proxy, request, null, logger, tcm);
 
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
 
         // try to create again - failure
         final ProgressEvent<ResourceModel, CallbackContext> next_response
-                = handler.handleRequest(proxy, request, null, logger);
+                = handler.handleRequest(proxy, request, null, logger, tcm);
 
         // delete the project created
-        cleanup(request);
+        cleanup(request, tcm);
 
         assertThat(next_response).isNotNull();
         assertThat(next_response.getStatus()).isEqualTo(OperationStatus.FAILED);
@@ -154,11 +120,11 @@ public class CreateHandlerTest {
         assertThat(next_response.getErrorCode()).isEqualTo(HandlerErrorCode.InternalFailure);
     }
 
-    public void cleanup(ResourceHandlerRequest<ResourceModel> request){
+    public void cleanup(ResourceHandlerRequest<ResourceModel> request, TypeConfigurationModel tcm){
         DeleteHandler handler = new DeleteHandler();
 
         final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
+                = handler.handleRequest(proxy, request, null, logger, tcm);
 
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
     }

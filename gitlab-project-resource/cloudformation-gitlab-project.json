@@ -2,6 +2,22 @@
     "typeName": "CloudFormation::GitLab::Project",
     "description": "Gitlab Project Management",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "Credentials": {
+            "type": "object",
+            "properties": {
+                "HostUrl": {
+                    "description": "URL of the GitLab Server",
+                    "type": "string"
+                },
+                "AuthToken": {
+                    "description": "Authentication Token",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
     "properties": {
         "Name": {
             "description": "The name of the project",
@@ -11,23 +27,11 @@
         "Id": {
             "description": "The ID of the project",
             "type": "integer"
-        },
-        "Server": {
-            "description": "GitLab Server address",
-            "type": "string",
-            "maxLength": 64
-        },
-        "Token": {
-            "description": "Authentication Token",
-            "type": "string",
-            "maxLength": 64
         }
     },
     "additionalProperties": false,
     "required": [
-        "Name",
-        "Server",
-        "Token"
+        "Name"
     ],
     "readOnlyProperties": [
         "/properties/Id"
@@ -61,5 +65,16 @@
                 "gitlab:ListProjects"
             ]
         }
+    },
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAuthentication": {
+                "$ref": "#/definitions/Credentials"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAuthentication"
+        ]
     }
 }

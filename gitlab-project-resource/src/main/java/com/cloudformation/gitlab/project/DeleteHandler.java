@@ -11,6 +11,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -21,11 +22,14 @@ public class DeleteHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final Logger logger) {
+        final Logger logger,
+        final TypeConfigurationModel tcm) {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        GitLabProjectService gitLabService = initGitLabService(model.getServer(),model.getToken());
+        Credentials creds = tcm.getGitLabAuthentication();
+        final GitLabProjectService gitLabService = initGitLabService(creds.getHostUrl(),creds.getAuthToken());
+
         try {
             gitLabService.deleteById(model.getId());
         } catch (GitLabServiceException e){
