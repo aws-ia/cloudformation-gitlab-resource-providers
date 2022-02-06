@@ -1,5 +1,6 @@
 package com.gitlab.aws.cfn.resources.projects.member.group;
 
+import com.gitlab.aws.cfn.resources.shared.GitLabLiveTestSupport;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -43,7 +44,6 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
     @Mock
     private Logger logger;
 
-    GitLabApi gitlab;
     TypeConfigurationModel typeConfiguration;
     ResourceModel model;
     ResourceHandlerRequest<ResourceModel> request;
@@ -55,8 +55,6 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
 
     @Test @Order(0)
     public void testCreate() throws GitLabApiException {
-        gitlab = new GitLabApi("https://gitlab.com", getAccessTokenForTests());
-
         Pager<Group> groups = gitlab.getGroupApi().getGroups(5);
         if (groups.current().isEmpty()) throw new IllegalStateException("Test requires at least one group already defined. (GitLab does not allow creating top-level groups.)");
 
