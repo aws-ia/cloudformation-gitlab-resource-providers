@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.Pager;
+import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.GroupParams;
 import org.gitlab4j.api.models.Project;
@@ -37,7 +38,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class ProjectMemberGroupCrudlLiveTest {
+public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectMemberGroupCrudlLiveTest.class);
 
@@ -52,29 +53,10 @@ public class ProjectMemberGroupCrudlLiveTest {
     ResourceModel model;
     ResourceHandlerRequest<ResourceModel> request;
 
-    public final static String TEST_PREFIX = "cfn-test";
     final String TEST_ID = UUID.randomUUID().toString();
 
     Group newGroup = null;
     Project newProject = null;
-
-    public final static String GITLAB_ACCESS_TOKEN_ENV = "GITLAB_ACCESS_TOKEN_CFN_TESTS";
-    public final static String GITLAB_ACCESS_TOKEN_FILE = ".gitlab_access_token_cfn_tests";
-
-    public static String getAccessTokenForTests() {
-        String token = System.getenv(GITLAB_ACCESS_TOKEN_ENV);
-        if (!Strings.isNullOrEmpty(token)) return token;
-        File f = new File(System.getProperty("user.home")+File.separator+GITLAB_ACCESS_TOKEN_FILE);
-        if (f.exists()) {
-            try {
-                token = Files.readAllLines(f.toPath()).stream().collect(Collectors.joining()).trim();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (!Strings.isNullOrEmpty(token)) return token;
-        }
-        throw new IllegalStateException("Test requires either env var "+GITLAB_ACCESS_TOKEN_ENV+" or file "+GITLAB_ACCESS_TOKEN_FILE+" containing personal access token");
-    }
 
     @Test @Order(0)
     public void testCreate() throws GitLabApiException {
@@ -96,7 +78,7 @@ public class ProjectMemberGroupCrudlLiveTest {
         typeConfiguration = TypeConfigurationModel.builder()
                 .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
                 .build();
-        model = ResourceModel.builder().projectId("" + newProject.getId()).groupId("" + newGroup.getId()).build();
+        model = ResourceModel.builder().projectId(newProject.getId()).groupId(newGroup.getId()).accessLevel("Developer").build();
         request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .build();
@@ -110,10 +92,13 @@ public class ProjectMemberGroupCrudlLiveTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newProject.getId()));
         assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newGroup.getId()));
+        assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
         assertThat(response.getErrorCode()).isNull();
 
         assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
-                .anyMatch(share -> model.getGroupId().equals(""+share.getGroupId()));
+                .filteredOn(share -> model.getGroupId().equals(share.getGroupId()))
+                .hasSize(1)
+                .allSatisfy(share -> share.getGroupAccessLevel().equals(AccessLevel.DEVELOPER));
     }
 
     @Test @Order(1)
@@ -140,7 +125,7 @@ public class ProjectMemberGroupCrudlLiveTest {
     }
 
     @Test @Order(3)
-    public void testUpdate() throws GitLabApiException {
+    public void testUpdateNoChange() throws GitLabApiException {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         // no op
@@ -152,6 +137,24 @@ public class ProjectMemberGroupCrudlLiveTest {
     }
 
     @Test @Order(4)
+    public void testUpdateChangeAccessLevel() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        model.setAccessLevel("Reporter");
+        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+        assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Reporter");
+
+        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
+                .filteredOn(share -> model.getGroupId().equals(share.getGroupId()))
+                .hasSize(1)
+                .allSatisfy(share -> share.getGroupAccessLevel().equals(AccessLevel.REPORTER));
+    }
+
+    @Test @Order(5)
     public void testDelete() throws GitLabApiException {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
@@ -162,14 +165,14 @@ public class ProjectMemberGroupCrudlLiveTest {
         assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
 
         assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
-                .noneMatch(share -> model.getGroupId().equals(""+share.getGroupId()));
+                .noneMatch(share -> model.getGroupId().equals(share.getGroupId()));
     }
 
     @AfterAll
     public void tearDown() {
         try {
-            if (newProject!=null) gitlab.getProjectApi().deleteProject(""+newProject.getId());
-            if (newGroup!=null) gitlab.getGroupApi().deleteGroup(""+newGroup.getId());
+            if (newProject!=null) gitlab.getProjectApi().deleteProject(newProject.getId());
+            if (newGroup!=null) gitlab.getGroupApi().deleteGroup(newGroup.getId());
         } catch (GitLabApiException e) {
             LOG.error("Error during cleanup (ignoring, probably test failed and that is more interesting): "+e, e);
         }

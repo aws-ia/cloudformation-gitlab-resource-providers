@@ -28,18 +28,32 @@
         },
         "ProjectId": {
             "description": "ID of the project to which the group should be added",
-            "type": "string"
+            "type": "integer"
         },
         "GroupId": {
             "description": "ID of the group which should be added to the project",
+            "type": "integer"
+        },
+        "AccessLevel": {
+            "description": "The access level to grant to this group for the project, e.g. 'guest', 'developer', or 'maintainer'. Note the GitLab API may not allow all values.",
             "type": "string",
-            "pattern": "[0-9]+"
+            "enum": [
+                "None",
+                "Minimal Access",
+                "Guest",
+                "Reporter",
+                "Developer",
+                "Maintainer",
+                "Owner",
+                "Admin"
+            ]
         }
     },
     "additionalProperties": false,
     "required": [
         "ProjectId",
-        "GroupId"
+        "GroupId",
+        "AccessLevel"
     ],
     "readOnlyProperties": [
         "/properties/MembershipId"

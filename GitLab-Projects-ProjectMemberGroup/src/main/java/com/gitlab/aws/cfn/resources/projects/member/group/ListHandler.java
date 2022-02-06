@@ -1,11 +1,10 @@
 package com.gitlab.aws.cfn.resources.projects.member.group;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import org.gitlab4j.api.models.ProjectSharedGroup;
-import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
-
-import java.util.List;
+import software.amazon.cloudformation.proxy.ProgressEvent;
 
 public class ListHandler extends BaseHandlerResource {
 
@@ -22,8 +21,9 @@ public class ListHandler extends BaseHandlerResource {
     protected ResourceModel newModel(ProjectSharedGroup g) {
         ResourceModel m = new ResourceModel();
         m.setProjectId(model.getProjectId());
-        m.setGroupId(""+g.getGroupId());
+        m.setGroupId(g.getGroupId());
         initMembershipId(m);
+        m.setAccessLevel(toNiceAccessLevelString(g.getGroupAccessLevel()));
         return m;
     }
 

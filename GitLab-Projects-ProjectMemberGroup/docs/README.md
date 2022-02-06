@@ -12,8 +12,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "GitLab::Projects::ProjectMemberGroup",
     "Properties" : {
-        "<a href="#projectid" title="ProjectId">ProjectId</a>" : <i>String</i>,
-        "<a href="#groupid" title="GroupId">GroupId</a>" : <i>String</i>
+        "<a href="#projectid" title="ProjectId">ProjectId</a>" : <i>Integer</i>,
+        "<a href="#groupid" title="GroupId">GroupId</a>" : <i>Integer</i>,
+        "<a href="#accesslevel" title="AccessLevel">AccessLevel</a>" : <i>String</i>
     }
 }
 </pre>
@@ -23,8 +24,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: GitLab::Projects::ProjectMemberGroup
 Properties:
-    <a href="#projectid" title="ProjectId">ProjectId</a>: <i>String</i>
-    <a href="#groupid" title="GroupId">GroupId</a>: <i>String</i>
+    <a href="#projectid" title="ProjectId">ProjectId</a>: <i>Integer</i>
+    <a href="#groupid" title="GroupId">GroupId</a>: <i>Integer</i>
+    <a href="#accesslevel" title="AccessLevel">AccessLevel</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -35,7 +37,7 @@ ID of the project to which the group should be added
 
 _Required_: Yes
 
-_Type_: String
+_Type_: Integer
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -45,9 +47,19 @@ ID of the group which should be added to the project
 
 _Required_: Yes
 
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AccessLevel
+
+The access level to grant to this group for the project, e.g. 'guest', 'developer', or 'maintainer'. Note the GitLab API may not allow all values.
+
+_Required_: Yes
+
 _Type_: String
 
-_Pattern_: <code>[0-9]+</code>
+_Allowed Values_: <code>None</code> | <code>Minimal Access</code> | <code>Guest</code> | <code>Reporter</code> | <code>Developer</code> | <code>Maintainer</code> | <code>Owner</code> | <code>Admin</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

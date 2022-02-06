@@ -1,8 +1,6 @@
 package com.gitlab.aws.cfn.resources.projects.member.group;
 
 import org.gitlab4j.api.GitLabApi;
-import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.AccessLevel;
 
 public abstract class BaseHandlerGitLab<CallbackContext> extends BaseHandlerGeneric<CallbackContext, TypeConfigurationModel> {
 
