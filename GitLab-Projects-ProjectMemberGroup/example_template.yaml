@@ -1,0 +1,9 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template describes an example resource type for giving a group permissions on a project
+Resources:
+  GitlabProjectMemberGroup:
+    Type: GitLab::Projects::ProjectMemberGroup
+    Properties:
+      ProjectId: alex-proj1
+      GroupId: 16020673

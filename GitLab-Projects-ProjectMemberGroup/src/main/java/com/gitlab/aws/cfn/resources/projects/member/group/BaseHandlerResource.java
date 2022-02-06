@@ -11,20 +11,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public abstract class BaseHandlerStd extends BaseHandlerGeneric<CallbackContext, TypeConfigurationModel> {
-
-    protected GitLabApi gitlab;
-
-    @Override
-    protected void requestInit() throws Exception {
-        if (gitlab==null) {
-            gitlab = new GitLabApi(typeConfiguration.getGitLabAccess().getUrl(), typeConfiguration.getGitLabAccess().getAccessToken());
-        }
-    }
-
-    public void setGitLabApi(GitLabApi gitLabApi) {
-        this.gitlab = gitLabApi;
-    }
+public abstract class BaseHandlerResource extends BaseHandlerGitLab<CallbackContext> {
 
     protected void initMembershipId(ResourceModel model) {
         model.setMembershipId(model.getProjectId()+"-"+model.getGroupId());

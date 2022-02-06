@@ -21,6 +21,8 @@ target/
 
 # our logs
 rpdk.log*
+*.log
 
 # contains credentials
 sam-tests/
+

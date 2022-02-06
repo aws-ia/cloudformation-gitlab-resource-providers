@@ -1,13 +1,14 @@
 package com.gitlab.aws.cfn.resources.projects.member.group;
 
+import org.slf4j.LoggerFactory;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public abstract class BaseHandlerGeneric<CallbackContext, TypeConfigurationModel> extends BaseHandler<CallbackContext, TypeConfigurationModel> {
+public abstract class BaseHandlerGeneric<CallbackContext, TypeConfigurationModel> extends BaseHandler<CallbackContext, TypeConfigurationModel> implements BaseHandlerMixins<ResourceModel, CallbackContext> {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(BaseHandlerGeneric.class);
 
     protected ResourceHandlerRequest<ResourceModel> request;
     protected CallbackContext callbackContext;
@@ -40,46 +41,18 @@ public abstract class BaseHandlerGeneric<CallbackContext, TypeConfigurationModel
             return result;
 
         } catch (Exception e) {
+            // only available when run locally
+            LOG.error("Error in request: "+e, e);
 
             return failure(e);
         }
     }
 
+    @Override
+    public ResourceModel getModel() { return model; }
+
     protected abstract void handleRequest() throws Exception;
 
     protected abstract void requestInit() throws Exception;
-
-    protected ProgressEvent<ResourceModel, CallbackContext> success() {
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                .resourceModel(model)
-                .status(OperationStatus.SUCCESS)
-                .build();
-    }
-
-
-    protected ProgressEvent<ResourceModel, CallbackContext> failure() {
-        return failure(HandlerErrorCode.GeneralServiceException);
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> failure(HandlerErrorCode code) {
-        return failure(code, null);
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> failure(String message) {
-        return failure(HandlerErrorCode.GeneralServiceException, message);
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> failure(Throwable exception) {
-        return failure(""+exception);
-    }
-
-    protected ProgressEvent<ResourceModel, CallbackContext> failure(HandlerErrorCode code, String message) {
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                .resourceModel(model)
-                .status(OperationStatus.FAILED)
-                .errorCode(code)
-                .message(message)
-                .build();
-    }
 
 }

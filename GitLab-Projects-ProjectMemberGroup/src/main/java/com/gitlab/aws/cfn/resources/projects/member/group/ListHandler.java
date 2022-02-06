@@ -2,16 +2,12 @@ package com.gitlab.aws.cfn.resources.projects.member.group;
 
 import java.util.stream.Collectors;
 import org.gitlab4j.api.models.ProjectSharedGroup;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ListHandler extends BaseHandlerStd {
+public class ListHandler extends BaseHandlerResource {
 
     @Override
     protected void handleRequest() throws Exception {

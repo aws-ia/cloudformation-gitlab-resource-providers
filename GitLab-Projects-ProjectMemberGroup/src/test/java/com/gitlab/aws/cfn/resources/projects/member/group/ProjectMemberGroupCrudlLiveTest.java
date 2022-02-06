@@ -1,0 +1,197 @@
+package com.gitlab.aws.cfn.resources.projects.member.group;
+
+import com.google.common.base.Strings;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.Pager;
+import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.GroupParams;
+import org.gitlab4j.api.models.Project;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+@TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
+@TestMethodOrder(OrderAnnotation.class)
+@Tag("Live")
+public class ProjectMemberGroupCrudlLiveTest {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectMemberGroupCrudlLiveTest.class);
+
+    @Mock
+    private AmazonWebServicesClientProxy proxy;
+
+    @Mock
+    private Logger logger;
+
+    GitLabApi gitlab;
+    TypeConfigurationModel typeConfiguration;
+    ResourceModel model;
+    ResourceHandlerRequest<ResourceModel> request;
+
+    public final static String TEST_PREFIX = "cfn-test";
+    final String TEST_ID = UUID.randomUUID().toString();
+
+    Group newGroup = null;
+    Project newProject = null;
+
+    public final static String GITLAB_ACCESS_TOKEN_ENV = "GITLAB_ACCESS_TOKEN_CFN_TESTS";
+    public final static String GITLAB_ACCESS_TOKEN_FILE = ".gitlab_access_token_cfn_tests";
+
+    public static String getAccessTokenForTests() {
+        String token = System.getenv(GITLAB_ACCESS_TOKEN_ENV);
+        if (!Strings.isNullOrEmpty(token)) return token;
+        File f = new File(System.getProperty("user.home")+File.separator+GITLAB_ACCESS_TOKEN_FILE);
+        if (f.exists()) {
+            try {
+                token = Files.readAllLines(f.toPath()).stream().collect(Collectors.joining()).trim();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (!Strings.isNullOrEmpty(token)) return token;
+        }
+        throw new IllegalStateException("Test requires either env var "+GITLAB_ACCESS_TOKEN_ENV+" or file "+GITLAB_ACCESS_TOKEN_FILE+" containing personal access token");
+    }
+
+    @Test @Order(0)
+    public void testCreate() throws GitLabApiException {
+        gitlab = new GitLabApi("https://gitlab.com", getAccessTokenForTests());
+
+        Pager<Group> groups = gitlab.getGroupApi().getGroups(5);
+        if (groups.current().isEmpty()) throw new IllegalStateException("Test requires at least one group already defined. (GitLab does not allow creating top-level groups.)");
+
+        GroupParams params = new GroupParams()
+                .withName(TEST_PREFIX+"-group-" + TEST_ID)
+                .withPath(TEST_PREFIX+"-path-" + TEST_ID)
+                .withParentId(groups.current().iterator().next().getId());
+        newGroup = gitlab.getGroupApi().createGroup(params);
+
+        newProject = gitlab.getProjectApi().createProject(TEST_PREFIX+"-project-" + TEST_ID);
+
+        proxy = mock(AmazonWebServicesClientProxy.class);
+        logger = mock(Logger.class);
+        typeConfiguration = TypeConfigurationModel.builder()
+                .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
+                .build();
+        model = ResourceModel.builder().projectId("" + newProject.getId()).groupId("" + newGroup.getId()).build();
+        request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).describedAs("Create failed; message %s.", response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newProject.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newGroup.getId()));
+        assertThat(response.getErrorCode()).isNull();
+
+        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
+                .anyMatch(share -> model.getGroupId().equals(""+share.getGroupId()));
+    }
+
+    @Test @Order(1)
+    public void testRead() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        ProgressEvent<ResourceModel, CallbackContext> response = new ReadHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+    }
+
+    @Test @Order(2)
+    public void testList() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        // no op
+        ProgressEvent<ResourceModel, CallbackContext> response = new ListHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModels()).anyMatch(m -> m.getMembershipId().equals(model.getMembershipId()));
+    }
+
+    @Test @Order(3)
+    public void testUpdate() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        // no op
+        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+    }
+
+    @Test @Order(4)
+    public void testDelete() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        ProgressEvent<ResourceModel, CallbackContext> response = new DeleteHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+
+        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
+                .noneMatch(share -> model.getGroupId().equals(""+share.getGroupId()));
+    }
+
+    @AfterAll
+    public void tearDown() {
+        try {
+            if (newProject!=null) gitlab.getProjectApi().deleteProject(""+newProject.getId());
+            if (newGroup!=null) gitlab.getGroupApi().deleteGroup(""+newGroup.getId());
+        } catch (GitLabApiException e) {
+            LOG.error("Error during cleanup (ignoring, probably test failed and that is more interesting): "+e, e);
+        }
+    }
+
+
+    public static void main(String[] args) throws GitLabApiException {
+        int MAX = 10;
+
+        // clean up
+        GitLabApi gitlab = new GitLabApi("https://gitlab.com", getAccessTokenForTests());
+        for (Group x : gitlab.getGroupApi().getGroups(MAX).current()) {
+            if (x.getName().startsWith(TEST_PREFIX)) {
+                LOG.info("Deleting leaked test item: "+x.getName()+" "+x);
+                gitlab.getGroupApi().deleteGroup(x.getId());
+            }
+        }
+        for (Project x : gitlab.getProjectApi().getOwnedProjects(MAX).current()) {
+            if (x.getName().startsWith(TEST_PREFIX)) {
+                LOG.info("Deleting leaked test item: "+x.getName()+" "+x);
+                gitlab.getProjectApi().deleteProject(x.getId());
+            }
+        }
+    }
+}
