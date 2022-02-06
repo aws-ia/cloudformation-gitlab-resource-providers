@@ -1,11 +1,6 @@
 package com.gitlab.aws.cfn.resources.projects.member.group;
 
-import com.google.common.base.Strings;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApi;
@@ -90,19 +85,19 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getStatus()).describedAs("Create failed; message %s.", response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newProject.getId()));
-        assertThat(response.getResourceModel().getMembershipId()).satisfies(s -> s.contains("" + newGroup.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newProject.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroup.getId()));
         assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
         assertThat(response.getErrorCode()).isNull();
 
         assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
                 .filteredOn(share -> model.getGroupId().equals(share.getGroupId()))
                 .hasSize(1)
-                .allSatisfy(share -> share.getGroupAccessLevel().equals(AccessLevel.DEVELOPER));
+                .allMatch(share -> share.getGroupAccessLevel().equals(AccessLevel.DEVELOPER));
     }
 
     @Test @Order(1)
-    public void testRead() throws GitLabApiException {
+    public void testRead() {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         ProgressEvent<ResourceModel, CallbackContext> response = new ReadHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
@@ -113,7 +108,7 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
     }
 
     @Test @Order(2)
-    public void testList() throws GitLabApiException {
+    public void testList() {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         // no op
@@ -125,7 +120,7 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
     }
 
     @Test @Order(3)
-    public void testUpdateNoChange() throws GitLabApiException {
+    public void testUpdateNoChange() {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         // no op

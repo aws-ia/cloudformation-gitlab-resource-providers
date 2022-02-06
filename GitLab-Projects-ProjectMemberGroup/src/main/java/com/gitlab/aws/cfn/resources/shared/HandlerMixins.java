@@ -1,10 +1,10 @@
-package com.gitlab.aws.cfn.resources.projects.member.group;
+package com.gitlab.aws.cfn.resources.shared;
 
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 
-public interface BaseHandlerMixins<ResourceModel, CallbackContext> {
+public interface HandlerMixins<ResourceModel, CallbackContext> {
 
     ResourceModel getModel();
 
