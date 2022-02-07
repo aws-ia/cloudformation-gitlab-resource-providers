@@ -7,8 +7,17 @@ import java.nio.file.Files;
 import java.util.stream.Collectors;
 import org.gitlab4j.api.GitLabApi;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.TestWatcher;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
+@ExtendWith(LoggingTestWatcher.class)
 public class GitLabLiveTestSupport {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GitLabLiveTestSupport.class);
@@ -59,7 +68,6 @@ public class GitLabLiveTestSupport {
     @BeforeAll
     public void initGitLabApi() {
         gitlab = new GitLabApi(AbstractGitlabCombinedResourceHandler.DEFAULT_URL, getAccessTokenForTests());
-        LOG.info("Hello from beforeAll. gitlab is "+gitlab);
     }
 
 }

@@ -10,6 +10,7 @@ import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.GroupParams;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -212,6 +213,7 @@ public class UserMemberOfGroupCrudlLiveTest extends GitLabLiveTestSupport {
                 .desiredResourceState(model)
                 .build();
 
+        LOG.info("Expecting ERROR as part of this test (following error can probably be ignored)");
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
 

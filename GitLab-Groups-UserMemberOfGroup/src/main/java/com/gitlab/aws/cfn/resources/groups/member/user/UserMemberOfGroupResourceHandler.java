@@ -76,7 +76,7 @@ public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedReso
                     model.setUsername(user.get().getUsername());
                 } else {
                     if (!modelUsername.equals(user.get().getUsername())) {
-                        throw fail(HandlerErrorCode.ResourceConflict, "Username '"+model.getUsername()+"' does not match UserId "+model.getUserId()+" ('"+user.get().getUsername()+")");
+                        throw fail(HandlerErrorCode.ResourceConflict, "Username '"+model.getUsername()+"' does not match UserId "+model.getUserId()+" ('"+user.get().getUsername()+"')");
                     }
                 }
             } else {
