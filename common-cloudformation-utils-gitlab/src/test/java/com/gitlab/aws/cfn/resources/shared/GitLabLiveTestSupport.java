@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.function.FailableRunnable;
 import org.gitlab4j.api.GitLabApi;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -70,4 +71,29 @@ public class GitLabLiveTestSupport {
         gitlab = new GitLabApi(AbstractGitlabCombinedResourceHandler.DEFAULT_URL, getAccessTokenForTests());
     }
 
+    public void assertSoon(FailableRunnable body) {
+        assertWithinSeconds(5, body);
+    }
+
+    public void assertWithinSeconds(int numSeconds, FailableRunnable body) {
+        long end = System.currentTimeMillis() + numSeconds*1000;
+        while (true) {
+            try {
+                body.run();
+                return;
+            } catch (Throwable e) {
+                if (end < System.currentTimeMillis()) {
+                    if (e instanceof RuntimeException) throw (RuntimeException)e;
+                    if (e instanceof Error) throw (Error)e;
+                    throw new RuntimeException(e);
+                }
+                try {
+                    LOG.debug("Assertion failed, but will retry after delay ("+body+")");
+                    Thread.sleep(50);
+                } catch (InterruptedException e2) {
+                    throw new RuntimeException(e2);
+                }
+            }
+        }
+    }
 }

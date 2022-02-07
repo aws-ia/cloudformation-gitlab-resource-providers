@@ -122,7 +122,7 @@ public class GroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
 
-        assertThat(gitlab.getGroupApi().getOptionalGroup(model.getId()).isPresent()).isEqualTo(false);
+        assertSoon(() -> assertThat(gitlab.getGroupApi().getOptionalGroup(model.getId()).isPresent()).isEqualTo(false));
     }
 
     @AfterAll
