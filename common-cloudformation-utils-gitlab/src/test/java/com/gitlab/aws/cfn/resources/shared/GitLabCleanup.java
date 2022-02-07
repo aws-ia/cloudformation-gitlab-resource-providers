@@ -26,7 +26,12 @@ public class GitLabCleanup {
             Group x = groups.remove(0);
             if (x.getName().startsWith(GitLabLiveTestSupport.TEST_PREFIX)) {
                 LOG.info("Deleting leaked test item: "+x.getName()+" "+x);
-                gitlab.getGroupApi().deleteGroup(x.getId());
+                try {
+                    gitlab.getGroupApi().deleteGroup(x.getId());
+                } catch (Exception e) {
+                    LOG.warn("Could not delete item: "+e);
+                    LOG.debug("Trace for error: "+e, e);
+                }
             }
             if (firstGroup) {
                 // descend into the first group because that's usually where we create them

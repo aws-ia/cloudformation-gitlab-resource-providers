@@ -2,7 +2,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Shows how to add a GitLab user to a GitLab group
 Resources:
-  GitlabProjectMemberGroup:
+  MyUserJoiningAGroup:
     Type: GitLab::Groups::UserMemberOfGroup
     Properties:
       GroupId: 16020673

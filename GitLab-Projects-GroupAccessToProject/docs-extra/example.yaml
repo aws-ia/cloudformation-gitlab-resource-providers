@@ -2,7 +2,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Shows how to share a GitLab project with a GitLab group with a given access level.
 Resources:
-  GitlabGroupAccessToProject:
+  MyGroupSharingAProject:
     Type: GitLab::Projects::GroupAccessToProject
     Properties:
       ProjectId: 33430825

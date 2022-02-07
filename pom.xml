@@ -18,6 +18,7 @@
         <module>GitLab-Groups-UserMemberOfGroup</module>
         <module>GitLab-Projects-Project</module>
         <module>GitLab-Projects-GroupAccessToProject</module>
+        <module>GitLab-Projects-UserMemberOfProject</module>
         <module>docs/user</module>
     </modules>
 

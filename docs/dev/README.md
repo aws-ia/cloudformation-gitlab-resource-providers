@@ -94,7 +94,8 @@ Then to prepare the code, we typically:
 
 * Copy the `XxxxResourceHandler` from one of the other projects, renaming as appropriate.
 * Modify the 5 handlers as per other projects (making each `extends XxxxResourceHandler.BaseHandlerAdapter {}`)
-* Delete the generated tests
+* Delete the `example_inputs` folder, `.gitignore` file, and `src/resources` folder
+* Delete the generated tests `*.java`
 * Copy the `XxxxCrudlLiveTest` from one of the other projects, renaming as appropriate.
 * Copy a `docs-extra/example.yaml` from one of the other projects, renaming as appropriate.
 * Modify the `pom.xml` to match one of the other projects
@@ -107,4 +108,5 @@ Then to develop:
 * Edit the properties in `gitlab-xxxx-yyyy.json` as appropriate.
 * Run `cfn generate`.
 * Edit the `XxxxResourceHandler` and `XxxxCrudlLiveTest` to do the right thing for this resource.
+* Copy SAM tests from another project and edit to do the right thing for this resource.
 * Create an example in `docs-extra/example.yaml` and test it (as above).

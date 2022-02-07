@@ -2,7 +2,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Shows how to create a GitLab project
 Resources:
-  GitlabProject:
+  MySampleProject:
     Type: GitLab::Projects::Project
     Properties:
-      Name: sample-project
+      Name: my-sample-project
