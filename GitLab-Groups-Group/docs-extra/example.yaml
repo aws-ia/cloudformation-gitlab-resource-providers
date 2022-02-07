@@ -1,0 +1,10 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to create a group in GitLab. Note a group ParentId is usually required by GitLab.
+Resources:
+  GitlabProject:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: 16020673
+      Name: sample-group
+      Path: path-to-sample-group
