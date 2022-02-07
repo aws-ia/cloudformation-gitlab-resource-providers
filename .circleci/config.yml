@@ -6,7 +6,7 @@ version: 2.1
 executors:
   cfng-executor: # default executor image for most cloudsoft projects
     docker:
-    - image: $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID
+    - image: $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID # docker image id = cfn-builder
       auth:
         username: $DOCKER_REGISTRY_USERNAME
         password: $DOCKER_REGISTRY_PASSWORD
@@ -70,12 +70,6 @@ commands: # re-usable as steps in any job in this config
     - checkout
     # Build and test
     - run:
-        name: Instal pip3
-        command: sudo apt-get install python3-pip --assume-yes
-    - run:
-        name: Install cfn
-        command: pip3 install cloudformation-cli cloudformation-cli-java-plugin
-    - run:
         name: Build & test
         command: mvn -s .circleci/circleci-m2-settings.xml clean install
     - slack/notify:
@@ -83,6 +77,19 @@ commands: # re-usable as steps in any job in this config
 
 
 jobs:
+  # Build Docker image to use for building CFN Projects
+  build-image-cfn:
+    machine: true
+    steps:
+    - checkout
+    - run: |
+        cd docker-build
+        docker build --tag $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID .
+    - run: docker login -u $DOCKER_REGISTRY_USERNAME -p "$DOCKER_REGISTRY_PASSWORD" $DOCKER_REGISTRY_HOST
+    - run: docker push $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID && sleep 10
+    - slack/notify:
+        <<: *job-failed-notification
+
   # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
   build-and-test:
     executor: cfng-executor
@@ -92,6 +99,21 @@ jobs:
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
+
+
+  # Builds and push the docker images use to build CFN Resource projects
+  # Will build every week, only from `master` branch
+  publish-builder-docker-image:
+    triggers:
+    - schedule:
+        cron: "0 0 * * 0"
+        filters:
+          branches:
+            only:
+            - master
+    jobs:
+    - build-image-cfn
+
   cloudformation-gitlab-build: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
@@ -99,3 +121,4 @@ workflows:
         context:
         - cloudsoft-artifactory
         - cloudsoft-sonatype
+
