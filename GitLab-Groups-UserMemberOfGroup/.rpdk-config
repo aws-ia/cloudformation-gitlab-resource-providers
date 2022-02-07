@@ -1,0 +1,29 @@
+{
+    "artifact_type": "RESOURCE",
+    "typeName": "GitLab::Groups::UserMemberOfGroup",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "com.gitlab.aws.cfn.resources.groups.member.user.HandlerWrapper::handleRequest",
+    "testEntrypoint": "com.gitlab.aws.cfn.resources.groups.member.user.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "version": false,
+        "subparser_name": null,
+        "verbose": 0,
+        "force": false,
+        "type_name": null,
+        "artifact_type": null,
+        "namespace": [
+            "com",
+            "gitlab",
+            "aws",
+            "cfn",
+            "resources",
+            "groups",
+            "member",
+            "user"
+        ],
+        "codegen_template_path": "default",
+        "protocolVersion": "2.0.0"
+    },
+    "executableEntrypoint": "com.gitlab.aws.cfn.resources.groups.member.user.HandlerWrapperExecutable"
+}

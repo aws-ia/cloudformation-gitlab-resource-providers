@@ -1,12 +1,9 @@
 # macOS
 .DS_Store
 ._*
-env
-*.class
-*.jar
+
 # Maven outputs
 .classpath
-*.swp
 
 # IntelliJ
 *.iml
@@ -21,8 +18,6 @@ target/
 
 # our logs
 rpdk.log*
-*.log
 
 # contains credentials
 sam-tests/
-

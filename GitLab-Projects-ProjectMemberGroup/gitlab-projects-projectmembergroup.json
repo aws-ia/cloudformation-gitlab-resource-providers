@@ -1,0 +1,101 @@
+{
+    "typeName": "GitLab::Projects::ProjectMemberGroup",
+    "description": "Adds a group as a member of a GitLab project",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "GitLabAccess": {
+            "type": "object",
+            "properties": {
+                "Url": {
+                    "description": "URL of the GitLab Server",
+                    "type": "string"
+                },
+                "AccessToken": {
+                    "description": "Access Token",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "AccessToken"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "MembershipId": {
+            "description": "Unique identifier for this membership resource, constructed by concatenating the other IDs",
+            "type": "string"
+        },
+        "ProjectId": {
+            "description": "ID of the project to which the group should be added",
+            "type": "integer"
+        },
+        "GroupId": {
+            "description": "ID of the group which should be added to the project",
+            "type": "integer"
+        },
+        "AccessLevel": {
+            "description": "The access level to grant to this group for the project, e.g. 'guest', 'developer', or 'maintainer'. Note the GitLab API may not allow all values.",
+            "type": "string",
+            "enum": [
+                "None",
+                "Minimal Access",
+                "Guest",
+                "Reporter",
+                "Developer",
+                "Maintainer",
+                "Owner",
+                "Admin"
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "ProjectId",
+        "GroupId",
+        "AccessLevel"
+    ],
+    "readOnlyProperties": [
+        "/properties/MembershipId"
+    ],
+    "createOnlyProperties": [
+        "/properties/ProjectId",
+        "/properties/GroupId"
+    ],
+    "primaryIdentifier": [
+        "/properties/MembershipId"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+            ]
+        },
+        "read": {
+            "permissions": [
+            ]
+        },
+        "update": {
+            "permissions": [
+            ]
+        },
+        "delete": {
+            "permissions": [
+            ]
+        },
+        "list": {
+            "permissions": [
+            ]
+        }
+    },
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAccess": {
+                "$ref": "#/definitions/GitLabAccess"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAccess"
+        ]
+    }
+}

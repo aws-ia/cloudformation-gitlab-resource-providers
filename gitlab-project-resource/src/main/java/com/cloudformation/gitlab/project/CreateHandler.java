@@ -32,7 +32,7 @@ public class CreateHandler extends BaseHandlerStd {
             Project project = gitLabService.create(modelMap);
             model.setId(project.getId());
         } catch (GitLabServiceException e){
-            logger.log("Error");
+            logger.log("Error: "+e);
             return failure(model,HandlerErrorCode.InternalFailure);
         }
         return success(model);
