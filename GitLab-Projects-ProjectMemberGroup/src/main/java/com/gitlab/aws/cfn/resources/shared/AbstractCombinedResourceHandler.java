@@ -75,14 +75,18 @@ public abstract class AbstractCombinedResourceHandler<ResourceModel, CallbackCon
             task.run();
             if (result==null) result = success();
 
-            return result;
-
         } catch (Throwable e) {
             // only available when run locally
             LOG.error("Error in request: "+e, e);
 
-            return failure(e);
+            if (e instanceof FailureToSetInResult) {
+                result = (ProgressEvent<ResourceModel, CallbackContext>) ((FailureToSetInResult)e).getResult();
+            } else {
+                result = failure(e);
+            }
         }
+
+        return result;
     }
 
     public ProgressEvent<ResourceModel, CallbackContext> safeCreate() { return safely(this::create); }

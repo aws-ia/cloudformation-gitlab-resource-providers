@@ -37,6 +37,8 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
     }
 
     class FailureToSetInResult extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
         final ProgressEvent<?,?> result;
         private FailureToSetInResult(ProgressEvent<?,?> result) {
             this.result = result;

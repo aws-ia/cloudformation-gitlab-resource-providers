@@ -45,7 +45,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### UserId
 
-ID (numeric) of the user to add to the group. Either this or UserName but not both should be supplied.
+ID (numeric) of the user to add to the group. Either this or Username but not both should be supplied.
 
 _Required_: No
 
