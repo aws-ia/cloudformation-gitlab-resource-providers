@@ -61,7 +61,7 @@ Initialized a new project in /{workspace}/cloudformation-gitlab/gitlab-project-u
 <parent>
         <groupId>com.cloudformation.gitlab.project</groupId>
         <artifactId>cloudformation-gitlab</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
 </parent>
 ```

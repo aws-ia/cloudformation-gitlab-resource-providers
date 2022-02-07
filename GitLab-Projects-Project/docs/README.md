@@ -1,6 +1,6 @@
 # GitLab::Projects::Project
 
-Adds a group as a member of a GitLab project
+Creates a project in GitLab
 
 ## Syntax
 

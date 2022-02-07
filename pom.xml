@@ -9,12 +9,14 @@
     <artifactId>parent-gitlab-cloudformation</artifactId>
 
     <name>Parent - GitLab CloudFormation Resources</name>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>  <!-- GITLAB_CFN_VERSION -->
     <packaging>pom</packaging>
 
     <modules>
         <module>common-cloudformation-utils-gitlab</module>
+        <module>GitLab-Groups-Group</module>
         <module>GitLab-Groups-UserMemberOfGroup</module>
+        <module>GitLab-Projects-Project</module>
         <module>GitLab-Projects-GroupAccessToProject</module>
     </modules>
 

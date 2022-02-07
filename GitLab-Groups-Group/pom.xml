@@ -12,8 +12,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <name>GitLab::Projects::GroupAccessToProject</name>
-    <artifactId>gitlab-groups-groupaccesstoproject</artifactId>
+    <name>GitLab::Groups::Group</name>
+    <artifactId>gitlab-groups-group</artifactId>
 
     <dependencies>
         <!-- `cfn` requires this dependency to be here, even though it's in the parent pom.xml -->

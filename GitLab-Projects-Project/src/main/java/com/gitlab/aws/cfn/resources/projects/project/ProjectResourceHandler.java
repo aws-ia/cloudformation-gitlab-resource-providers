@@ -67,11 +67,15 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
 
     @Override
     protected void update() throws Exception {
-        Project project = gitlab.getProjectApi().getProject(model.getId());
+        Optional<Project> project = gitlab.getProjectApi().getOptionalProject(model.getId());
 
-        if (!Objects.equals(model.getName(), project.getName())) {
-            project.setName(model.getName());
-            gitlab.getProjectApi().updateProject(project);
+        if (!project.isPresent()) {
+            create();
+
+        } else if (!Objects.equals(model.getName(), project.get().getName())) {
+            project.get().setName(model.getName());
+            gitlab.getProjectApi().updateProject(project.get());
+
         } else {
             // no changes needed
         }
@@ -84,10 +88,10 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
 
     @Override
     protected void list() throws Exception {
-        List<ResourceModel> groupShares = gitlab.getProjectApi().getOwnedProjects().stream().map(this::newModelForProject).collect(Collectors.toList());
+        List<ResourceModel> projects = gitlab.getProjectApi().getOwnedProjects().stream().map(this::newModelForProject).collect(Collectors.toList());
 
         result = ProgressEvent.<ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext>builder()
-                .resourceModels(groupShares)
+                .resourceModels(projects)
                 .status(OperationStatus.SUCCESS)
                 .build();
     }

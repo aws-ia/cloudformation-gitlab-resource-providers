@@ -1,6 +1,6 @@
 {
-    "typeName": "GitLab::Projects::Project",
-    "description": "Creates a project in GitLab",
+    "typeName": "GitLab::Groups::Group",
+    "description": "Creates a group in GitLab",
     "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
     "definitions": {
         "GitLabAccess": {
@@ -22,16 +22,22 @@
         }
     },
     "properties": {
-        "Name": {
-            "description": "The name of the project to create",
-            "type": "string",
-            "maxLength": 64
-        },
         "Id": {
-            "description": "The ID of the project",
+            "description": "The ID of the group",
             "type": "integer"
-        }
-    },
+        },
+        "Name": {
+            "description": "Name of the group to create",
+            "type": "string"
+        },
+        "Path": {
+            "description": "Path of the group to create",
+            "type": "string"
+        },
+        "ParentId": {
+            "description": "ID of the group's parent",
+            "type": "integer"
+        }    },
     "additionalProperties": false,
     "required": [
         "Name"
@@ -41,6 +47,11 @@
     ],
     "primaryIdentifier": [
         "/properties/Id"
+    ],
+    "createOnlyProperties": [
+        "/properties/Name",
+        "/properties/Path",
+        "/properties/ParentId"
     ],
     "handlers": {
         "create": {

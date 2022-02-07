@@ -8,12 +8,12 @@
     <parent>
         <groupId>com.gitlab.aws.cfn.resources</groupId>
         <artifactId>parent-gitlab-cloudformation</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <name>GitLab::Projects::Project</name>
-    <artifactId>gitlab-groups-project</artifactId>
+    <artifactId>gitlab-projects-project</artifactId>
 
     <dependencies>
         <!-- `cfn` requires this dependency to be here, even though it's in the parent pom.xml -->
