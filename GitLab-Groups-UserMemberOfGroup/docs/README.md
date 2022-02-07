@@ -14,6 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#groupid" title="GroupId">GroupId</a>" : <i>Integer</i>,
         "<a href="#userid" title="UserId">UserId</a>" : <i>Integer</i>,
+        "<a href="#username" title="Username">Username</a>" : <i>String</i>,
         "<a href="#accesslevel" title="AccessLevel">AccessLevel</a>" : <i>String</i>
     }
 }
@@ -26,6 +27,7 @@ Type: GitLab::Groups::UserMemberOfGroup
 Properties:
     <a href="#groupid" title="GroupId">GroupId</a>: <i>Integer</i>
     <a href="#userid" title="UserId">UserId</a>: <i>Integer</i>
+    <a href="#username" title="Username">Username</a>: <i>String</i>
     <a href="#accesslevel" title="AccessLevel">AccessLevel</a>: <i>String</i>
 </pre>
 
@@ -39,21 +41,31 @@ _Required_: Yes
 
 _Type_: Integer
 
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### UserId
 
-ID of the user to add to the group
+ID (numeric) of the user to add to the group. Either this or UserName but not both should be supplied.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: Integer
 
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### Username
+
+Username (handle, e.g. often written starting with '@') of the user to add to the group. Either this or the UserId but not both should be supplied.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### AccessLevel
 
-The access level to grant to this user in the group, e.g. 'guest', 'developer', or 'maintainer'. Note the GitLab API may not allow all values.
+The access level to grant to this user in the group, e.g. 'Guest', 'Developer', or 'Maintainer'. Note the GitLab API may not allow all values.
 
 _Required_: Yes
 

@@ -48,7 +48,8 @@ public class UserMemberOfGroupCrudlLiveTest extends GitLabLiveTestSupport {
 
     final String TEST_ID = UUID.randomUUID().toString();
 
-    final static Integer USER_ID_TO_ADD = Integer.parseInt(getEnvOrFile("user_id_to_add", "gitlab user ID (must exist as cannot create user via API, and must not be the group owner)"));
+    final static Integer USER_ID_TO_ADD = Integer.parseInt(getEnvOrFile("user_id_to_add", "gitlab user ID to add to group (must exist as cannot create user via API, and must not be the group owner)"));
+    final static String USERNAME_TO_ADD = getEnvOrFile("username_to_add", "gitlab username to add to group (should match user_id)");
 
     Group newGroup = null;
 
@@ -83,6 +84,7 @@ public class UserMemberOfGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroup.getId()));
         assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + USER_ID_TO_ADD));
         assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
+        assertThat(response.getResourceModel().getUsername()).isEqualTo(USERNAME_TO_ADD);
         assertThat(response.getErrorCode()).isNull();
 
         assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
@@ -158,6 +160,62 @@ public class UserMemberOfGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
                 .allMatch(member -> member.getAccessLevel().equals(AccessLevel.OWNER))
                 .hasSize(1);
+    }
+
+    @Test @Order(6)
+    public void testCreateWithUsername() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        model = ResourceModel.builder().groupId(newGroup.getId()).username(USERNAME_TO_ADD).accessLevel("Developer").build();
+        request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getUserId()).isEqualTo(USER_ID_TO_ADD);
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroup.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + USER_ID_TO_ADD));
+        assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
+
+        assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
+                .filteredOn(member -> member.getId().equals(USER_ID_TO_ADD))
+                .hasSize(1)
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.DEVELOPER));
+    }
+
+    @Test @Order(7)
+    public void testDeleteUsername() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        ProgressEvent<ResourceModel, CallbackContext> response = new DeleteHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+
+        // will typically have 1 owner afterwards
+        assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.OWNER))
+                .hasSize(1);
+    }
+
+    @Test @Order(8)
+    public void testCreateWithBadUsername() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        model = ResourceModel.builder().groupId(newGroup.getId()).username("wrong_username").userId(USER_ID_TO_ADD).accessLevel("Developer").build();
+        request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
     }
 
     @AfterAll

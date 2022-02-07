@@ -70,8 +70,7 @@ public class ProjectMemberGroupResourceHandler extends AbstractGitlabCombinedRes
     @Override
     protected void create() throws Exception {
         if (isGroupAlreadyAMember()) {
-            result = failure(HandlerErrorCode.AlreadyExists);
-            return;
+            throw fail(HandlerErrorCode.AlreadyExists);
         }
 
         shareProject();
@@ -83,7 +82,7 @@ public class ProjectMemberGroupResourceHandler extends AbstractGitlabCombinedRes
         Optional<ProjectSharedGroup> share = getGroupAlreadyAMember();
 
         if (!share.isPresent()) {
-            result = failure(HandlerErrorCode.NotFound);
+            throw fail(HandlerErrorCode.NotFound);
 
         } else {
             model.setAccessLevel(GitLabUtils.toNiceAccessLevelString(share.get().getGroupAccessLevel()));

@@ -15,10 +15,6 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
                 .build();
     }
 
-    default ProgressEvent<ResourceModel, CallbackContext> failure() {
-        return failure(HandlerErrorCode.GeneralServiceException);
-    }
-
     default ProgressEvent<ResourceModel, CallbackContext> failure(HandlerErrorCode code) {
         return failure(code, null);
     }
@@ -39,4 +35,30 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
                 .message(message)
                 .build();
     }
+
+    class FailureToSetInResult extends RuntimeException {
+        final ProgressEvent<?,?> result;
+        private FailureToSetInResult(ProgressEvent<?,?> result) {
+            this.result = result;
+        }
+        public ProgressEvent<?,?> getResult() {
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName()+"["+result.getErrorCode()+"]: "+result.getMessage();
+        }
+    }
+
+    default FailureToSetInResult fail(ProgressEvent<ResourceModel, CallbackContext> failure) {
+        throw new FailureToSetInResult(failure);
+    }
+
+    default FailureToSetInResult fail(Throwable exception) {
+        return fail(failure(exception));
+    }
+    default FailureToSetInResult fail(HandlerErrorCode code) { return fail(failure(code)); }
+    default FailureToSetInResult fail(HandlerErrorCode code, String message) { return fail(failure(code, message)); }
+
 }

@@ -58,6 +58,10 @@
     "readOnlyProperties": [
         "/properties/MembershipId"
     ],
+    "createOnlyProperties": [
+        "/properties/ProjectId",
+        "/properties/GroupId"
+    ],
     "primaryIdentifier": [
         "/properties/MembershipId"
     ],

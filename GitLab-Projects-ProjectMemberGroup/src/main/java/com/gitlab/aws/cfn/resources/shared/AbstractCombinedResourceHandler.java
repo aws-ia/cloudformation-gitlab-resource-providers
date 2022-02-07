@@ -44,7 +44,11 @@ public abstract class AbstractCombinedResourceHandler<ResourceModel, CallbackCon
             // only available when run locally
             LOG.error("Error in request init: "+e, e);
 
-            result = failure(e);
+            if (e instanceof FailureToSetInResult) {
+                result = (ProgressEvent<ResourceModel, CallbackContext>) ((FailureToSetInResult)e).getResult();
+            } else {
+                result = failure(e);
+            }
         }
 
         return (This) this;
