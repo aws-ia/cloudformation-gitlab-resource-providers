@@ -15,6 +15,7 @@
     <modules>
         <module>common-cloudformation-utils-gitlab</module>
         <module>GitLab-Groups-UserMemberOfGroup</module>
+        <module>GitLab-Projects-GroupAccessToProject</module>
     </modules>
 
     <properties>
@@ -39,11 +40,12 @@
 
     <dependencies>
         <!-- AWS RPDK necessities -->
-        <dependency>
-            <groupId>software.amazon.cloudformation</groupId>
-            <artifactId>aws-cloudformation-rpdk-java-plugin</artifactId>
-            <version>[2.0.0,3.0.0)</version>
-        </dependency>
+        <!-- excluded here because it needs to be in each project, otherwise rpdk complains -->
+<!--        <dependency>-->
+<!--            <groupId>software.amazon.cloudformation</groupId>-->
+<!--            <artifactId>aws-cloudformation-rpdk-java-plugin</artifactId>-->
+<!--            <version>[2.0.0,3.0.0)</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -125,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <goals>
