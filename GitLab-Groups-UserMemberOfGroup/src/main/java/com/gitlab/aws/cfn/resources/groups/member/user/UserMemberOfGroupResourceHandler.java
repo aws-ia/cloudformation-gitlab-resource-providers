@@ -1,17 +1,16 @@
-package com.gitlab.aws.cfn.resources.projects.member.group;
+package com.gitlab.aws.cfn.resources.groups.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
-import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
-import java.util.Arrays;
+import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.fromNiceAccessLevelString;
+import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.toNiceAccessLevelString;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
-import org.gitlab4j.api.models.ProjectSharedGroup;
+import org.gitlab4j.api.models.Member;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -19,11 +18,11 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class ProjectMemberGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<ResourceModel, CallbackContext, TypeConfigurationModel, ProjectMemberGroupResourceHandler> {
+public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<ResourceModel, CallbackContext, TypeConfigurationModel, UserMemberOfGroupResourceHandler> {
 
     public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
-            return new ProjectMemberGroupResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+            return new UserMemberOfGroupResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
         }
     }
 
@@ -33,76 +32,76 @@ public class ProjectMemberGroupResourceHandler extends AbstractGitlabCombinedRes
     }
 
     protected void initMembershipId(ResourceModel model) {
-        model.setMembershipId(model.getProjectId()+"-"+model.getGroupId());
+        model.setMembershipId(model.getGroupId()+"-"+model.getUserId());
     }
 
-    protected ResourceModel newModelForMemberGroup(ProjectSharedGroup g) {
+    protected ResourceModel newModelForMemberUser(Member g) {
         ResourceModel m = new ResourceModel();
-        m.setProjectId(model.getProjectId());
-        m.setGroupId(g.getGroupId());
+        m.setGroupId(model.getGroupId());
+        m.setUserId(g.getId());
         initMembershipId(m);
-        m.setAccessLevel(GitLabUtils.toNiceAccessLevelString(g.getGroupAccessLevel()));
+        m.setAccessLevel(toNiceAccessLevelString(g.getAccessLevel()));
         return m;
     }
 
-    protected boolean isGroupAlreadyAMember() throws GitLabApiException {
-        return getGroupAlreadyAMember().isPresent();
+    protected boolean isUserAlreadyAMember() throws GitLabApiException {
+        return getUserAlreadyAMember().isPresent();
     }
 
-    protected Optional<ProjectSharedGroup> getGroupAlreadyAMember() throws GitLabApiException {
-        return gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups().stream().filter(share -> model.getGroupId().equals(share.getGroupId())).findFirst();
+    protected Optional<Member> getUserAlreadyAMember() {
+        return gitlab.getGroupApi().getOptionalMember(model.getGroupId(), model.getUserId());
     }
 
-    protected void shareProject() throws GitLabApiException {
-        gitlab.getProjectApi().shareProject(model.getProjectId(), model.getGroupId(), getAccessLevel(), null);
+    protected void addMember() throws GitLabApiException {
+        gitlab.getGroupApi().addMember(model.getGroupId(), model.getUserId(), getAccessLevel(), null);
     }
 
-    protected void unshareProject() throws GitLabApiException {
-        gitlab.getProjectApi().unshareProject(model.getProjectId(), model.getGroupId());
+    protected void removeMember() throws GitLabApiException {
+        gitlab.getGroupApi().removeMember(model.getGroupId(), model.getUserId());
     }
 
     protected AccessLevel getAccessLevel() {
-        return GitLabUtils.fromNiceAccessLevelString(model.getAccessLevel());
+        return fromNiceAccessLevelString(model.getAccessLevel());
     }
+
 
     // ---------------------------------
 
     @Override
     protected void create() throws Exception {
-        if (isGroupAlreadyAMember()) {
+        if (isUserAlreadyAMember()) {
             result = failure(HandlerErrorCode.AlreadyExists);
             return;
         }
 
-        shareProject();
+        addMember();
         initMembershipId(model);
     }
 
     @Override
     protected void read() throws Exception {
-        Optional<ProjectSharedGroup> share = getGroupAlreadyAMember();
+        Optional<Member> member = getUserAlreadyAMember();
 
-        if (!share.isPresent()) {
+        if (!member.isPresent()) {
             result = failure(HandlerErrorCode.NotFound);
 
         } else {
-            model.setAccessLevel(GitLabUtils.toNiceAccessLevelString(share.get().getGroupAccessLevel()));
+            model.setAccessLevel(toNiceAccessLevelString(member.get().getAccessLevel()));
         }
     }
 
     @Override
     protected void update() throws Exception {
-        Optional<ProjectSharedGroup> share = getGroupAlreadyAMember();
+        Optional<Member> member = getUserAlreadyAMember();
 
-        if (!share.isPresent()) {
+        if (!member.isPresent()) {
             // does not exist; create
-            shareProject();
+            addMember();
 
-        } else if (!Objects.equals(getAccessLevel(), share.get().getGroupAccessLevel())) {
+        } else if (!Objects.equals(getAccessLevel(), member.get().getAccessLevel())) {
             // change access level; for a _group_ share, i don't see how to do this apart from delete and re-create
             // (_user_ members can be updated, but not shared groups)
-            unshareProject();
-            shareProject();
+            gitlab.getGroupApi().updateMember(model.getGroupId(), model.getUserId(), getAccessLevel());
 
         } else {
             // no changes needed
@@ -111,12 +110,12 @@ public class ProjectMemberGroupResourceHandler extends AbstractGitlabCombinedRes
 
     @Override
     protected void delete() throws Exception {
-        unshareProject();
+        removeMember();
     }
 
     @Override
     protected void list() throws Exception {
-        List<ResourceModel> groupShares = gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups().stream().map(this::newModelForMemberGroup).collect(Collectors.toList());
+        List<ResourceModel> groupShares = gitlab.getGroupApi().getMembers(model.getGroupId()).stream().map(this::newModelForMemberUser).collect(Collectors.toList());
 
         result = ProgressEvent.<ResourceModel, CallbackContext>builder()
                 .resourceModels(groupShares)

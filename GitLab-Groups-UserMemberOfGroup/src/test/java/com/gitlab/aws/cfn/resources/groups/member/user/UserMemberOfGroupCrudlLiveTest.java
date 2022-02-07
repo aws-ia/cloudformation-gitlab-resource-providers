@@ -1,4 +1,4 @@
-package com.gitlab.aws.cfn.resources.projects.member.group;
+package com.gitlab.aws.cfn.resources.groups.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.GitLabLiveTestSupport;
 import java.util.UUID;
@@ -9,7 +9,6 @@ import org.gitlab4j.api.Pager;
 import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.GroupParams;
-import org.gitlab4j.api.models.Project;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -33,9 +32,9 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
+public class UserMemberOfGroupCrudlLiveTest extends GitLabLiveTestSupport {
 
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectMemberGroupCrudlLiveTest.class);
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(UserMemberOfGroupCrudlLiveTest.class);
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -49,8 +48,9 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
 
     final String TEST_ID = UUID.randomUUID().toString();
 
+    final static Integer USER_ID_TO_ADD = Integer.parseInt(getEnvOrFile("user_id_to_add", "gitlab user ID (must exist as cannot create user via API, and must not be the group owner)"));
+
     Group newGroup = null;
-    Project newProject = null;
 
     @Test @Order(0)
     public void testCreate() throws GitLabApiException {
@@ -63,14 +63,12 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
                 .withParentId(groups.current().iterator().next().getId());
         newGroup = gitlab.getGroupApi().createGroup(params);
 
-        newProject = gitlab.getProjectApi().createProject(TEST_PREFIX+"-project-" + TEST_ID);
-
         proxy = mock(AmazonWebServicesClientProxy.class);
         logger = mock(Logger.class);
         typeConfiguration = TypeConfigurationModel.builder()
                 .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
                 .build();
-        model = ResourceModel.builder().projectId(newProject.getId()).groupId(newGroup.getId()).accessLevel("Developer").build();
+        model = ResourceModel.builder().groupId(newGroup.getId()).userId(USER_ID_TO_ADD).accessLevel("Developer").build();
         request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .build();
@@ -82,15 +80,15 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newProject.getId()));
         assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroup.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + USER_ID_TO_ADD));
         assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
         assertThat(response.getErrorCode()).isNull();
 
-        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
-                .filteredOn(share -> model.getGroupId().equals(share.getGroupId()))
+        assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
+                .filteredOn(member -> member.getId().equals(USER_ID_TO_ADD))
                 .hasSize(1)
-                .allMatch(share -> share.getGroupAccessLevel().equals(AccessLevel.DEVELOPER));
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.DEVELOPER));
     }
 
     @Test @Order(1)
@@ -140,10 +138,10 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
         assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Reporter");
 
-        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
-                .filteredOn(share -> model.getGroupId().equals(share.getGroupId()))
+        assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
+                .filteredOn(member -> member.getId().equals(USER_ID_TO_ADD))
                 .hasSize(1)
-                .allMatch(share -> share.getGroupAccessLevel().equals(AccessLevel.REPORTER));
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.REPORTER));
     }
 
     @Test @Order(5)
@@ -156,14 +154,15 @@ public class ProjectMemberGroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
 
-        assertThat(gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups())
-                .noneMatch(share -> model.getGroupId().equals(share.getGroupId()));
+        // will typically have 1 owner afterwards
+        assertThat(gitlab.getGroupApi().getMembers(model.getGroupId()))
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.OWNER))
+                .hasSize(1);
     }
 
     @AfterAll
     public void tearDown() {
         try {
-            if (newProject!=null) gitlab.getProjectApi().deleteProject(newProject.getId());
             if (newGroup!=null) gitlab.getGroupApi().deleteGroup(newGroup.getId());
         } catch (GitLabApiException e) {
             LOG.error("Error during cleanup (ignoring, probably test failed and that is more interesting): "+e, e);

@@ -12,9 +12,10 @@
         <relativePath>../gitlab-resource-parent/pom.xml</relativePath>
     </parent>
 
-    <groupId>com.gitlab.aws.cfn.resources.projects.member.group</groupId>
+<!--    <name>GitLab::Projects::GroupMemberOfProject</name>-->
+    <name>GitLab::Projects::ProjectMemberGroup</name>
+    <groupId>com.gitlab.aws.cfn.resources</groupId>
     <artifactId>gitlab-projects-projectmembergroup-handler</artifactId>
-    <name>gitlab-projects-projectmembergroup-handler</name>
 
     <!-- `cfn` requires the dependency to be here, even though it's in the parent pom.xml -->
     <dependencies>
