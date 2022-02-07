@@ -72,7 +72,7 @@ public class GitLabLiveTestSupport {
     }
 
     public void assertSoon(FailableRunnable body) {
-        assertWithinSeconds(5, body);
+        assertWithinSeconds(15, body);
     }
 
     public void assertWithinSeconds(int numSeconds, FailableRunnable body) {

@@ -122,8 +122,8 @@ public class GroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
 
-        assertThat(gitlab.getGroupApi().getOptionalGroup(model.getId())).matches(og ->
-                !og.isPresent() || og.get().getMarkedForDeletionOn()!=null);
+        assertSoon(() -> assertThat(gitlab.getGroupApi().getOptionalGroup(model.getId())).matches(og ->
+                !og.isPresent() || og.get().getMarkedForDeletionOn()!=null) );
     }
 
     @AfterAll
