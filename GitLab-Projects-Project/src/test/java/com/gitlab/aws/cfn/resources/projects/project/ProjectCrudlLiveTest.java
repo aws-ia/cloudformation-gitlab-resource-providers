@@ -78,6 +78,9 @@ public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<ProjectR
 
         assertThat(getRealItem()).isNotNull()
                 .matches(p -> p.getName().contains("-renamed-"));
+
+        ProgressEvent<ResourceModel, CallbackContext> delete = invoke(Action.DELETE);
+        assertStatusSuccess(delete);
     }
 
 }
