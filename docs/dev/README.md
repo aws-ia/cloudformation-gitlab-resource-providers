@@ -34,7 +34,7 @@ GITLAB_CFN_TESTS_USER_ID=123                 # numeric user ID corresponding to 
 GITLAB_CFN_TESTS_USER_ID_TO_ADD=456          # numeric user ID of a _different_ user
 GITLAB_CFN_TESTS_USERNAME_TO_ADD=bob         # username of this different user
 ```
-~~~~
+
 With the above set, `mvn clean install` should work.
 
 The tests create projects and groups, but will typically clean up after themselves.
@@ -101,7 +101,7 @@ aws cloudformation set-type-configuration \
 Or looping through all of them:
 
 ```
-SSM_PATH_TO_ACCESS_TOKEN=/cfn/gitlab/alex/access-token
+SSM_PATH_TO_ACCESS_TOKEN=/cfn/gitlab/access-token
 for x in GitLab-* ; do
   TYPE=$(echo $x | sed s/-/::/g)
   echo Setting type configuration for $TYPE...
