@@ -22,6 +22,7 @@ import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.ProjectSharedGroup;
+import org.gitlab4j.api.models.Visibility;
 import org.slf4j.LoggerFactory;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
@@ -81,6 +82,8 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
             ResourceModel m = new ResourceModel();
             m.setId(item.getId());
             m.setName(item.getName());
+            m.setPath(item.getPath());
+            m.setPublic_(firstNonNull(item.getPublic(), Visibility.PUBLIC.equals(item.getVisibility())));
             return m;
         }
 
@@ -88,12 +91,23 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
         public Project createItem() throws GitLabApiException {
             Project projectSpec = new Project()
                     .withName(model.getName())
+                    .withPath(model.getPath())
+
+                    // v3 and v4 api support
+                    .withPublic(firstNonNull(model.getPublic_(), false))
+                    .withVisibility(Boolean.TRUE.equals(model.getPublic_()) ? Visibility.PUBLIC : Visibility.PRIVATE)
+
                     .withIssuesEnabled(true)
                     .withMergeRequestsEnabled(true)
                     .withWikiEnabled(true)
                     .withSnippetsEnabled(true)
-                    .withPublic(true);  // TODO make this configurable
+                    ;
             return gitlab.getProjectApi().createProject(projectSpec);
+        }
+
+        public boolean isPublic(Project item) {
+            if (item.getPublic()!=null) return item.getPublic();
+            return Visibility.PUBLIC.equals(item.getVisibility());
         }
 
         @Override
@@ -101,6 +115,11 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
             if (!Objects.equals(model.getName(), existingItem.getName())) {
                 existingItem.setName(model.getName());
                 updates.add("Name");
+            }
+            if (model.getPublic_()!=null && !Objects.equals(model.getPublic_(), isPublic(existingItem))) {
+                existingItem.setPublic(model.getPublic_());
+                existingItem.setVisibility(model.getPublic_() ? Visibility.PUBLIC : Visibility.PRIVATE);
+                updates.add("Public");
             }
             if (!updates.isEmpty()) {
                 //LOG.info("Changing item: " + existingItem);

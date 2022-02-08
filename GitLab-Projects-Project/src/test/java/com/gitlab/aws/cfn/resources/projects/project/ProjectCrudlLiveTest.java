@@ -4,6 +4,7 @@ import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.models.Project;
+import org.gitlab4j.api.models.Visibility;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -39,14 +40,15 @@ public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<ProjectR
     }
 
     protected ResourceModel newModelForCreate() {
-        return ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).build();
+        return ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).public_(false).build();
     }
 
     @Test @Order(41)
-    public void testUpdateChangeName() throws Exception {
+    public void testUpdateChangeNamePublic() throws Exception {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         model.setName(model.getName()+"-alt");
+        model.setPublic_(true);
         ProgressEvent<ResourceModel, CallbackContext> response = invoke(Action.UPDATE);
 
         assertThat(response).isNotNull();
@@ -55,7 +57,8 @@ public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<ProjectR
         assertThat(response.getResourceModel().getName()).endsWith("-alt");
 
         assertThat(getRealItem()).isNotNull()
-                .matches(p -> p.getName().endsWith("-alt"));
+                .matches(p -> p.getName().endsWith("-alt"))
+                .matches(p -> Boolean.TRUE.equals(p.getPublic()) || Visibility.PUBLIC.equals(p.getVisibility()) );
     }
 
     @Test @Order(100)

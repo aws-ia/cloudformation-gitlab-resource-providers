@@ -13,6 +13,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "GitLab::Projects::Project",
     "Properties" : {
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
+        "<a href="#path" title="Path">Path</a>" : <i>String</i>,
+        "<a href="#public" title="Public">Public</a>" : <i>Boolean</i>,
     }
 }
 </pre>
@@ -23,6 +25,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: GitLab::Projects::Project
 Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
+    <a href="#path" title="Path">Path</a>: <i>String</i>
+    <a href="#public" title="Public">Public</a>: <i>Boolean</i>
 </pre>
 
 ## Properties
@@ -36,6 +40,28 @@ _Required_: Yes
 _Type_: String
 
 _Maximum_: <code>64</code>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Path
+
+The path of the project
+
+_Required_: No
+
+_Type_: String
+
+_Maximum_: <code>64</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### Public
+
+Whether the project should be public (default false)
+
+_Required_: No
+
+_Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

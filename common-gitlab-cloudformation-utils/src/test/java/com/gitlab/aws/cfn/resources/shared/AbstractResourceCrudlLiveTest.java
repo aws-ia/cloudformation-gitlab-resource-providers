@@ -129,7 +129,8 @@ public abstract class AbstractResourceCrudlLiveTest<
         model = response.getResourceModel();
         assertThat(model).isNotNull();
 
-        assertThat(getRealItem()).isNotNull();
+        assertThat(getRealItem()).isNotNull()
+                .matches(item -> model.equals(newHandlerHelper().modelFromItem(item)));
     }
 
     @Test @Order(20)

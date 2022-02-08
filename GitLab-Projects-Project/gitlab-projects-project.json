@@ -27,6 +27,15 @@
             "type": "string",
             "maxLength": 64
         },
+        "Path": {
+            "description": "The path of the project",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Public": {
+            "description": "Whether the project should be public (default false)",
+            "type": "boolean"
+        },
         "Id": {
             "description": "The ID of the project",
             "type": "integer"
@@ -38,6 +47,9 @@
     ],
     "readOnlyProperties": [
         "/properties/Id"
+    ],
+    "createOnlyProperties": [
+        "/properties/Path"
     ],
     "primaryIdentifier": [
         "/properties/Id"
