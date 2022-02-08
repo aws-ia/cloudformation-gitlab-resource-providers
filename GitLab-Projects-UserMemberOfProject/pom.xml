@@ -38,6 +38,12 @@
 
     <build>
         <plugins>
+            <!-- shade the JAR to simplify Lambda installation -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+
             <!-- enable CFN codegen from parent -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
