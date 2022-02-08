@@ -105,7 +105,7 @@ public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedReso
         updateModelUserFields(true);
 
         if (isUserAlreadyAMember()) {
-            throw fail(HandlerErrorCode.AlreadyExists);
+            throw fail(HandlerErrorCode.AlreadyExists, "User is already a member.");
         }
 
         addMember();
@@ -117,7 +117,7 @@ public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedReso
         Optional<Member> member = getUserAlreadyAMember();
 
         if (!member.isPresent()) {
-            throw fail(HandlerErrorCode.NotFound);
+            throw failNotFound();
 
         } else {
             model.setAccessLevel(toNiceAccessLevelString(member.get().getAccessLevel()));

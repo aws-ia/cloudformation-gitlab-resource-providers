@@ -1,6 +1,8 @@
 package com.gitlab.aws.cfn.resources.groups.member.group;
 
+import com.gitlab.aws.cfn.resources.groups.member.group.GroupAccessToGroupResourceHandler.GroupMember;
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
+import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.fromNiceAccessLevelString;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.toNiceAccessLevelString;
 import java.util.Collections;
@@ -15,14 +17,13 @@ import org.gitlab4j.api.AbstractApi;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
+import org.gitlab4j.api.models.Group;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext, TypeConfigurationModel, GroupAccessToGroupResourceHandler> {
+public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupMember,ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext, TypeConfigurationModel, GroupAccessToGroupResourceHandler> {
 
     public static class BaseHandlerAdapter extends BaseHandler<com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
@@ -35,26 +36,62 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
         return new GitLabApi(firstNonBlank(typeModel.getGitLabAccess().getUrl(), DEFAULT_URL), typeModel.getGitLabAccess().getAccessToken());
     }
 
-    protected void initMembershipId(ResourceModel model) {
-        model.setMembershipId(model.getSharedGroupId()+"-"+model.getSharedWithGroupId());
+    @Override
+    public GroupMemberHelper newHelper() {
+        return new GroupMemberHelper();
     }
 
-    protected ResourceModel newModelForMemberGroup(GroupMember g) {
-        ResourceModel m = new ResourceModel();
-        m.setSharedGroupId(model.getSharedGroupId());
-        m.setSharedWithGroupId(g.groupId);
-        initMembershipId(m);
-        m.setAccessLevel(toNiceAccessLevelString(g.getAccessLevel()));
-        return m;
+    public class GroupMemberHelper extends Helper<GroupMember> {
+
+        @Override
+        public Optional<GroupMember> readExistingItem() throws GitLabApiException {
+            return readExistingItems().stream().filter(g -> g.groupId.equals(model.getSharedWithGroupId())).findAny();
+        }
+
+        @Override
+        public List<GroupMember> readExistingItems() throws GitLabApiException {
+            if (model==null || model.getSharedGroupId()==null) return Collections.emptyList();
+            return getSharedWithGroups(model.getSharedGroupId());
+        }
+
+        @Override
+        public void deleteItem(GroupMember item) throws GitLabApiException {
+            gitlab.getGroupApi().unshareGroup(model.getSharedGroupId(), model.getSharedWithGroupId());
+        }
+
+        @Override
+        public ResourceModel modelFromItem(GroupMember g) {
+            ResourceModel m = new ResourceModel();
+            m.setSharedGroupId(model.getSharedGroupId());
+            m.setSharedWithGroupId(g.groupId);
+            initMembershipId(m);
+            m.setAccessLevel(toNiceAccessLevelString(g.getAccessLevel()));
+            return m;
+        }
+
+        protected void initMembershipId(ResourceModel model) {
+            model.setMembershipId(model.getSharedGroupId()+"-"+model.getSharedWithGroupId());
+        }
+
+
+        @Override
+        public GroupMember createItem() throws GitLabApiException {
+            Group sharedWith = gitlab.getGroupApi().shareGroup(model.getSharedGroupId(), model.getSharedWithGroupId(), getAccessLevel(), null);
+            return GroupMember.of(model);
+        }
+
+        @Override
+        public void updateItem(GroupMember existingItem, List<String> updates) throws GitLabApiException {
+            if (!Objects.equals(getAccessLevel(), existingItem.getAccessLevel())) {
+                updates.add("AccessLevel");
+            }
+            if (!updates.isEmpty()) {
+                deleteItem(existingItem);
+                createItem();
+            }
+        }
     }
 
-    protected boolean isGroupAlreadyAMember() throws GitLabApiException {
-        return getGroupAlreadyAMember().isPresent();
-    }
-
-    protected Optional<GroupMember> getGroupAlreadyAMember() throws GitLabApiException {
-        return getSharedWithGroups(model.getSharedGroupId()).stream().filter(m -> m.groupId.equals(model.getSharedWithGroupId())).findAny();
-    }
 
     public static class GroupMember {
         Integer groupId;
@@ -63,6 +100,12 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
             GroupMember result = new GroupMember();
             result.groupId = (Integer) m.get("group_id");
             result.accessLevel = (Integer) m.get("group_access_level");
+            return result;
+        }
+        static GroupMember of(ResourceModel m) {
+            GroupMember result = new GroupMember();
+            result.groupId = m.getSharedWithGroupId();
+            result.accessLevel = GitLabUtils.fromNiceAccessLevelString(m.getAccessLevel()).toValue();
             return result;
         }
 
@@ -91,74 +134,8 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
         }.getSharedGroups(groupId);
     }
 
-    protected void addMember() throws GitLabApiException {
-        gitlab.getGroupApi().shareGroup(model.getSharedGroupId(), model.getSharedWithGroupId(), getAccessLevel(), null);
-    }
-
-    protected void removeMember() throws GitLabApiException {
-        gitlab.getGroupApi().unshareGroup(model.getSharedGroupId(), model.getSharedWithGroupId());
-    }
-
     protected AccessLevel getAccessLevel() {
         return fromNiceAccessLevelString(model.getAccessLevel());
     }
 
-
-    // ---------------------------------
-
-    @Override
-    protected void create() throws Exception {
-        if (isGroupAlreadyAMember()) {
-            throw fail(HandlerErrorCode.AlreadyExists);
-        }
-
-        addMember();
-        initMembershipId(model);
-    }
-
-    @Override
-    protected void read() throws Exception {
-        Optional<GroupMember> member = getGroupAlreadyAMember();
-
-        if (!member.isPresent()) {
-            throw fail(HandlerErrorCode.NotFound);
-
-        } else {
-            model.setAccessLevel(toNiceAccessLevelString(member.get().getAccessLevel()));
-        }
-    }
-
-    @Override
-    protected void update() throws Exception {
-        Optional<GroupMember> member = getGroupAlreadyAMember();
-
-        if (!member.isPresent()) {
-            // does not exist; create
-            addMember();
-
-        } else if (!Objects.equals(getAccessLevel(), member.get().getAccessLevel())) {
-            // change access level; for a _group_ share, i don't see how to do this apart from delete and re-create
-            // (_user_ members can be updated, but not shared groups)
-            removeMember();
-            addMember();
-
-        } else {
-            // no changes needed
-        }
-    }
-
-    @Override
-    protected void delete() throws Exception {
-        removeMember();
-    }
-
-    @Override
-    protected void list() throws Exception {
-        List<ResourceModel> groupShares = getSharedWithGroups(model.getSharedGroupId()).stream().map(this::newModelForMemberGroup).collect(Collectors.toList());
-
-        result = ProgressEvent.<ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext>builder()
-                .resourceModels(groupShares)
-                .status(OperationStatus.SUCCESS)
-                .build();
-    }
 }

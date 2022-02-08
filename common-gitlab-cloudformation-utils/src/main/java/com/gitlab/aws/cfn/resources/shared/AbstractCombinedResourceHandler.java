@@ -1,16 +1,25 @@
 package com.gitlab.aws.cfn.resources.shared;
 
+import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler.Helper;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.function.FailableRunnable;
+import org.gitlab4j.api.models.Project;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.cloudformation.model.ResourceChange;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public abstract class AbstractCombinedResourceHandler<ResourceModel, CallbackContext, TypeConfigurationModel, This extends AbstractCombinedResourceHandler<ResourceModel, CallbackContext, TypeConfigurationModel, This>>
+public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, CallbackContext, TypeConfigurationModel, This extends AbstractCombinedResourceHandler<ItemT, ResourceModel, CallbackContext, TypeConfigurationModel, This>>
         implements HandlerMixins<ResourceModel, CallbackContext> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractCombinedResourceHandler.class);
@@ -102,10 +111,59 @@ public abstract class AbstractCombinedResourceHandler<ResourceModel, CallbackCon
         // nothing here, but can be overridden
     }
 
-    protected abstract void create() throws Exception;
-    protected abstract void read() throws Exception;
-    protected abstract void update() throws Exception;
-    protected abstract void delete() throws Exception;
-    protected abstract void list() throws Exception;
+    protected void create() throws Exception { newHelper().create(); }
+    protected void read() throws Exception { newHelper().read(); };
+    protected void update() throws Exception { newHelper().update(); };
+    protected void delete() throws Exception { newHelper().delete(); };
+    protected void list() throws Exception { newHelper().list(); };
 
+    public abstract Helper<ItemT> newHelper();
+
+    public abstract class Helper<ItemT> {
+        public abstract Optional<ItemT> readExistingItem() throws Exception;
+        public abstract List<ItemT> readExistingItems() throws Exception;
+        public abstract ResourceModel modelFromItem(ItemT item);
+        public abstract ItemT createItem() throws Exception;
+        public abstract void updateItem(ItemT item, List<String> updates) throws Exception;
+        public abstract void deleteItem(ItemT item) throws Exception;
+
+        public void create() throws Exception {
+            Optional<ItemT> item = readExistingItem();
+            if (item.isPresent()) fail(HandlerErrorCode.AlreadyExists, "Resource already exists.");
+            model = modelFromItem(createItem());
+        }
+
+        public void read() throws Exception {
+            Optional<ItemT> item = readExistingItem();
+            if (!item.isPresent()) failNotFound();
+            model = modelFromItem(item.get());
+        }
+
+        public void update() throws Exception {
+            Optional<ItemT> item = readExistingItem();
+            if (!item.isPresent()) failNotFound();
+            List<String> updates = new ArrayList<>();
+            updateItem(item.get(), updates);
+            if (!updates.isEmpty()) item = readExistingItem();
+            model = modelFromItem(item.get());
+            result = success(updates.isEmpty()
+                    ? "No changes"
+                    : "Changes: "+updates);
+        }
+
+        public void delete() throws Exception {
+            Optional<ItemT> item = readExistingItem();
+            if (!item.isPresent()) failNotFound();
+            deleteItem(item.get());
+            model = null;
+        }
+
+        public void list() throws Exception {
+            List<ResourceModel> models = readExistingItems().stream().map(this::modelFromItem).collect(Collectors.toList());
+            result = ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .resourceModels(models)
+                    .status(OperationStatus.SUCCESS)
+                    .build();
+        }
+    }
 }

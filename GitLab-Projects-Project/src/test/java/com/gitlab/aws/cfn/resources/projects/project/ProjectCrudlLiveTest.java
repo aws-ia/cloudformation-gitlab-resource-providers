@@ -1,11 +1,10 @@
 package com.gitlab.aws.cfn.resources.projects.project;
 
-import com.gitlab.aws.cfn.resources.shared.GitLabLiveTestSupport;
-import java.util.UUID;
+import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
+import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import org.gitlab4j.api.GitLabApiException;
-import org.junit.jupiter.api.AfterAll;
+import org.gitlab4j.api.models.Project;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -14,128 +13,79 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import static org.mockito.Mockito.mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.Action;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class ProjectCrudlLiveTest extends GitLabLiveTestSupport {
+public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<Project,ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectCrudlLiveTest.class);
 
-    @Mock
-    private AmazonWebServicesClientProxy proxy;
-
-    @Mock
-    private Logger logger;
-
-    TypeConfigurationModel typeConfiguration;
-    ResourceModel model;
-    ResourceHandlerRequest<ResourceModel> request;
-
-    final String TEST_ID = UUID.randomUUID().toString();
-
-    @Test @Order(0)
-    public void testCreate() throws GitLabApiException {
-        proxy = mock(AmazonWebServicesClientProxy.class);
-        logger = mock(Logger.class);
-        typeConfiguration = TypeConfigurationModel.builder()
+    @Override
+    protected TypeConfigurationModel newTypeConfiguration() {
+        return TypeConfigurationModel.builder()
                 .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
                 .build();
-        model = ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).build();
-        request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
-
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackContext()).isNull();
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getErrorCode()).isNull();
-
-        assertThat(gitlab.getProjectApi().getProject(model.getId())).isNotNull();
     }
 
-    @Test @Order(1)
-    public void testRead() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        ProgressEvent<ResourceModel, CallbackContext> response = new ReadHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
-        assertThat(response.getResourceModel().getName()).isEqualTo(model.getName());
+    protected ResourceModel newModelForCreate() {
+        return ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).build();
     }
 
-    @Test @Order(2)
-    public void testList() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        // no op
-        ProgressEvent<ResourceModel, CallbackContext> response = new ListHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModels()).anyMatch(m -> m.getId().equals(model.getId()));
+    @Override
+    protected HandlerWrapper newHandlerWrapper() {
+        return new HandlerWrapper();
     }
 
-    @Test @Order(3)
-    public void testUpdateNoChange() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        // no op
-        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
+    @Override
+    protected Project getRealItem() throws Exception {
+        return gitlab.getProjectApi().getProject(model.getId());
     }
 
-    @Test @Order(4)
-    public void testUpdateChangeName() throws GitLabApiException {
+    @Override
+    protected Optional<Project> getRealItem(Project item) throws Exception {
+        return gitlab.getProjectApi().getOptionalProject(item.getId());
+    }
+
+    @Test @Order(41)
+    public void testUpdateChangeName() throws Exception {
         if (model==null) fail("Create test must succeed for this to be meaningful.");
 
         model.setName(model.getName()+"-alt");
-        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+        ProgressEvent<ResourceModel, CallbackContext> response = invoke(Action.UPDATE);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
         assertThat(response.getResourceModel().getName()).endsWith("-alt");
 
-        assertThat(gitlab.getProjectApi().getProject(model.getId())).isNotNull()
+        assertThat(getRealItem()).isNotNull()
                 .matches(p -> p.getName().endsWith("-alt"));
     }
 
-    @Test @Order(5)
-    public void testDelete() throws GitLabApiException {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
+    @Test @Order(100)
+    public void testCreateUpdatePerContract() throws Exception {
+        model = ResourceModel.builder().name("cfn-test-sample-project"+TEST_ID).build();
 
-        ProgressEvent<ResourceModel, CallbackContext> response = new DeleteHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+        ProgressEvent<ResourceModel, CallbackContext> create = invoke(Action.CREATE);
+        assertStatusSuccess(create);
+        model = create.getResourceModel();
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
+        model.setName("cfn-test-sample-project-renamed-"+TEST_ID);
+        ProgressEvent<ResourceModel, CallbackContext> update = invoke(Action.UPDATE);
+        assertStatusSuccess(update);
+        model = update.getResourceModel();
 
-        assertThat(gitlab.getProjectApi().getOptionalProject(model.getId()).isPresent()).isEqualTo(false);
-    }
+        assertThat(model.getName()).isEqualTo("cfn-test-sample-project-renamed");
 
-    @AfterAll
-    public void tearDown() {
-        // nothing to do
+        assertThat(getRealItem()).isNotNull()
+                .matches(p -> p.getName().endsWith("-renamed"));
     }
 
 }

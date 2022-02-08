@@ -4,8 +4,11 @@ import com.gitlab.aws.cfn.resources.projects.project.BaseHandler;
 import com.gitlab.aws.cfn.resources.projects.project.CallbackContext;
 import com.gitlab.aws.cfn.resources.projects.project.ResourceModel;
 import com.gitlab.aws.cfn.resources.projects.project.TypeConfigurationModel;
+import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler;
+import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler.Helper;
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
 import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +20,7 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.ProjectSharedGroup;
+import org.slf4j.LoggerFactory;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -24,7 +28,9 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext, TypeConfigurationModel, ProjectResourceHandler> {
+public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<Project, ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext, TypeConfigurationModel, ProjectResourceHandler> {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectResourceHandler.class);
 
     public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, com.gitlab.aws.cfn.resources.projects.project.CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
@@ -37,62 +43,60 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
         return new GitLabApi(firstNonBlank(typeModel.getGitLabAccess().getUrl(), DEFAULT_URL), typeModel.getGitLabAccess().getAccessToken());
     }
 
-    protected ResourceModel newModelForProject(Project p) {
-        ResourceModel m = new ResourceModel();
-        m.setId(p.getId());
-        m.setName(p.getName());
-        return m;
+    @Override
+    public ProjectHelper newHelper() {
+        return new ProjectHelper();
     }
 
-    // ---------------------------------
+    public class ProjectHelper extends Helper<Project> {
 
-    @Override
-    protected void create() throws Exception {
-        Project projectSpec = new Project()
-                .withName(model.getName())
-                .withIssuesEnabled(true)
-                .withMergeRequestsEnabled(true)
-                .withWikiEnabled(true)
-                .withSnippetsEnabled(true)
-                .withPublic(true);  // TODO make this configurable
-        Project project = gitlab.getProjectApi().createProject(projectSpec);
-        model.setId(project.getId());
-    }
+        @Override
+        public Optional<Project> readExistingItem() {
+            if (model==null || model.getId()==null) return Optional.empty();
+            return gitlab.getProjectApi().getOptionalProject(model.getId());
+        }
 
-    @Override
-    protected void read() throws Exception {
-        Project project = gitlab.getProjectApi().getProject(model.getId());
-        model.setName(project.getName());
-    }
+        @Override
+        public List<Project> readExistingItems() throws GitLabApiException {
+            return gitlab.getProjectApi().getOwnedProjects();
+        }
 
-    @Override
-    protected void update() throws Exception {
-        Optional<Project> project = gitlab.getProjectApi().getOptionalProject(model.getId());
+        @Override
+        public void deleteItem(Project item) throws GitLabApiException {
+            gitlab.getProjectApi().deleteProject(item.getId());
+        }
 
-        if (!project.isPresent()) {
-            create();
+        @Override
+        public ResourceModel modelFromItem(Project item) {
+            ResourceModel m = new ResourceModel();
+            m.setId(item.getId());
+            m.setName(item.getName());
+            return m;
+        }
 
-        } else if (!Objects.equals(model.getName(), project.get().getName())) {
-            project.get().setName(model.getName());
-            gitlab.getProjectApi().updateProject(project.get());
+        @Override
+        public Project createItem() throws GitLabApiException {
+            Project projectSpec = new Project()
+                    .withName(model.getName())
+                    .withIssuesEnabled(true)
+                    .withMergeRequestsEnabled(true)
+                    .withWikiEnabled(true)
+                    .withSnippetsEnabled(true)
+                    .withPublic(true);  // TODO make this configurable
+            return gitlab.getProjectApi().createProject(projectSpec);
+        }
 
-        } else {
-            // no changes needed
+        @Override
+        public void updateItem(Project existingItem, List<String> updates) throws GitLabApiException {
+            if (!Objects.equals(model.getName(), existingItem.getName())) {
+                existingItem.setName(model.getName());
+                updates.add("Name");
+            }
+            if (!updates.isEmpty()) {
+                LOG.info("Changing item: " + existingItem);
+                gitlab.getProjectApi().updateProject(existingItem);
+            }
         }
     }
 
-    @Override
-    protected void delete() throws Exception {
-        gitlab.getProjectApi().deleteProject(model.getId());
-    }
-
-    @Override
-    protected void list() throws Exception {
-        List<ResourceModel> projects = gitlab.getProjectApi().getOwnedProjects().stream().map(this::newModelForProject).collect(Collectors.toList());
-
-        result = ProgressEvent.<ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext>builder()
-                .resourceModels(projects)
-                .status(OperationStatus.SUCCESS)
-                .build();
-    }
 }

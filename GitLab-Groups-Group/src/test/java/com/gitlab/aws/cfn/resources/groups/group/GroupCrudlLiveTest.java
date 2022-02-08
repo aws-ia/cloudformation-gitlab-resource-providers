@@ -1,12 +1,15 @@
 package com.gitlab.aws.cfn.resources.groups.group;
 
+import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
 import com.gitlab.aws.cfn.resources.shared.GitLabLiveTestSupport;
+import java.util.Optional;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.Pager;
 import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.Project;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -30,106 +33,54 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class GroupCrudlLiveTest extends GitLabLiveTestSupport {
+public class GroupCrudlLiveTest extends AbstractResourceCrudlLiveTest<Group,ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GroupCrudlLiveTest.class);
 
-    @Mock
-    private AmazonWebServicesClientProxy proxy;
+    @Override
+    protected TypeConfigurationModel newTypeConfiguration() {
+        return TypeConfigurationModel.builder()
+                .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
+                .build();
+    }
 
-    @Mock
-    private Logger logger;
-
-    TypeConfigurationModel typeConfiguration;
-    ResourceModel model;
-    ResourceHandlerRequest<ResourceModel> request;
-
-    final String TEST_ID = UUID.randomUUID().toString();
-
-    @Test @Order(0)
-    public void testCreate() throws GitLabApiException {
+    protected ResourceModel newModelForCreate() throws Exception {
         Pager<Group> groups = gitlab.getGroupApi().getGroups(5);
         if (groups.current().isEmpty()) throw new IllegalStateException("Test requires at least one group already defined. (GitLab does not allow creating top-level groups.)");
         Integer parentId = groups.current().iterator().next().getId();
 
-        proxy = mock(AmazonWebServicesClientProxy.class);
-        logger = mock(Logger.class);
-        typeConfiguration = TypeConfigurationModel.builder()
-                .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
+        return ResourceModel.builder()
+                .name(TEST_PREFIX+"-"+TEST_ID)
+                .path(TEST_PREFIX+"-path-"+TEST_ID)
+                .parentId(parentId)
                 .build();
-        model = ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).parentId(parentId).path(TEST_PREFIX+"-path-"+TEST_ID).build();
-        request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .build();
+    }
 
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+    @Override
+    protected HandlerWrapper newHandlerWrapper() {
+        return new HandlerWrapper();
+    }
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackContext()).isNull();
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getErrorCode()).isNull();
+    @Override
+    protected Group getRealItem() throws Exception {
+        return gitlab.getGroupApi().getGroup(model.getId());
+    }
 
-        // not always available immediately
-        assertSoon(() -> assertThat(gitlab.getGroupApi().getGroup(model.getId())).isNotNull()
+    @Override
+    protected Optional<Group> getRealItem(Group item) throws Exception {
+        return gitlab.getGroupApi().getOptionalGroup(item.getId());
+    }
+
+    @Override @Test @Order(10)
+    public void testCreate() throws Exception {
+        super.testCreate();
+        assertThat(getRealItem())
                 .matches(g -> g.getName().equals(model.getName()))
-                .matches(g -> g.getPath().equals(model.getPath())));
+                .matches(g -> g.getPath().equals(model.getPath()));
     }
 
-    @Test @Order(1)
-    public void testRead() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        ProgressEvent<ResourceModel, CallbackContext> response = new ReadHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
-        assertThat(response.getResourceModel().getName()).isEqualTo(model.getName());
+    protected void assertDelete(Group oldItem) throws Exception {
+        assertSoon(() -> assertThat(getRealItem(oldItem))
+                .matches(t -> !t.isPresent() || t.get().getMarkedForDeletionOn()!=null));
     }
-
-    @Test @Order(2)
-    public void testList() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        // no op
-        ProgressEvent<ResourceModel, CallbackContext> response = new ListHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModels()).anyMatch(m -> m.getId().equals(model.getId()));
-    }
-
-    @Test @Order(3)
-    public void testUpdateNoChange() {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        // no op
-        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
-    }
-
-    @Test @Order(5)
-    public void testDelete() throws GitLabApiException {
-        if (model==null) fail("Create test must succeed for this to be meaningful.");
-
-        ProgressEvent<ResourceModel, CallbackContext> response = new DeleteHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getResourceModel().getId()).isEqualTo(model.getId());
-
-        assertSoon(() -> assertThat(gitlab.getGroupApi().getOptionalGroup(model.getId())).matches(og ->
-                !og.isPresent() || og.get().getMarkedForDeletionOn()!=null) );
-    }
-
-    @AfterAll
-    public void tearDown() {
-        // nothing to do
-    }
-
 }

@@ -1,5 +1,7 @@
 package com.gitlab.aws.cfn.resources.shared;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -15,6 +17,14 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
                 .build();
     }
 
+    default ProgressEvent<ResourceModel, CallbackContext> success(String message) {
+        return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                .resourceModel(getModel())
+                .status(OperationStatus.SUCCESS)
+                .message(message)
+                .build();
+    }
+
     default ProgressEvent<ResourceModel, CallbackContext> failure(HandlerErrorCode code) {
         return failure(code, null);
     }
@@ -24,7 +34,13 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
     }
 
     default ProgressEvent<ResourceModel, CallbackContext> failure(Throwable exception) {
-        return failure(""+exception);
+        // include stack traces
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        exception.printStackTrace(pw);
+        return failure(sw.getBuffer().toString());
+
+        //return failure(""+exception);
     }
 
     default ProgressEvent<ResourceModel, CallbackContext> failure(HandlerErrorCode code, String message) {
@@ -60,7 +76,7 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
     default FailureToSetInResult fail(Throwable exception) {
         return fail(failure(exception));
     }
-    default FailureToSetInResult fail(HandlerErrorCode code) { return fail(failure(code)); }
+    default FailureToSetInResult failNotFound() { return fail(failure(HandlerErrorCode.NotFound, "The requested resource cannot be found.")); }
     default FailureToSetInResult fail(HandlerErrorCode code, String message) { return fail(failure(code, message)); }
 
 }
