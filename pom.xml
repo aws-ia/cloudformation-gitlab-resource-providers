@@ -16,6 +16,7 @@
         <module>common-gitlab-cloudformation-utils</module>
         <module>GitLab-Groups-Group</module>
         <module>GitLab-Groups-UserMemberOfGroup</module>
+        <module>GitLab-Groups-GroupAccessToGroup</module>
         <module>GitLab-Projects-Project</module>
         <module>GitLab-Projects-GroupAccessToProject</module>
         <module>GitLab-Projects-UserMemberOfProject</module>

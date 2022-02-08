@@ -1,0 +1,10 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to add a GitLab user to a GitLab group
+Resources:
+  MyUserJoiningAGroup:
+    Type: GitLab::Groups::GroupAccessToGroup
+    Properties:
+      GroupId: 16020673
+      UserId: 1092680           # or Username
+      AccessLevel: Maintainer

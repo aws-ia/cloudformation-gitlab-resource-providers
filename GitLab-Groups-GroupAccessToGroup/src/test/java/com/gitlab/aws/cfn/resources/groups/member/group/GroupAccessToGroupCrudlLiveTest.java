@@ -1,0 +1,180 @@
+package com.gitlab.aws.cfn.resources.groups.member.group;
+
+import com.gitlab.aws.cfn.resources.shared.GitLabLiveTestSupport;
+import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.Pager;
+import org.gitlab4j.api.models.AccessLevel;
+import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.GroupParams;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+@TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
+@TestMethodOrder(OrderAnnotation.class)
+@Tag("Live")
+public class GroupAccessToGroupCrudlLiveTest extends GitLabLiveTestSupport {
+
+    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GroupAccessToGroupCrudlLiveTest.class);
+
+    @Mock
+    private AmazonWebServicesClientProxy proxy;
+
+    @Mock
+    private Logger logger;
+
+    TypeConfigurationModel typeConfiguration;
+    ResourceModel model;
+    ResourceHandlerRequest<ResourceModel> request;
+
+    final String TEST_ID = UUID.randomUUID().toString();
+
+    final static Integer USER_ID_TO_ADD = Integer.parseInt(getEnvOrFile("user_id_to_add", "gitlab user ID to add to group (must exist as cannot create user via API, and must not be the group owner)"));
+    final static String USERNAME_TO_ADD = getEnvOrFile("username_to_add", "gitlab username to add to group (should match user_id)");
+
+    Group newGroupShared = null;
+    Group newGroupSharedWith = null;
+
+    @Test @Order(0)
+    public void testCreate() throws GitLabApiException {
+        Pager<Group> groups = gitlab.getGroupApi().getGroups(5);
+        if (groups.current().isEmpty()) throw new IllegalStateException("Test requires at least one group already defined. (GitLab does not allow creating top-level groups.)");
+
+        GroupParams params1 = new GroupParams()
+                .withName(TEST_PREFIX+"-group-shared-" + TEST_ID)
+                .withPath(TEST_PREFIX+"-path-shared-" + TEST_ID)
+                .withParentId(groups.current().iterator().next().getId());
+        newGroupShared = gitlab.getGroupApi().createGroup(params1);
+
+        GroupParams params2 = new GroupParams()
+                .withName(TEST_PREFIX+"-group-shared-with-" + TEST_ID)
+                .withPath(TEST_PREFIX+"-path-shared-with-" + TEST_ID)
+                .withParentId(groups.current().iterator().next().getId());
+        newGroupSharedWith = gitlab.getGroupApi().createGroup(params2);
+
+        proxy = mock(AmazonWebServicesClientProxy.class);
+        logger = mock(Logger.class);
+        typeConfiguration = TypeConfigurationModel.builder()
+                .gitLabAccess(GitLabAccess.builder().accessToken(getAccessTokenForTests()).build())
+                .build();
+        model = ResourceModel.builder().sharedGroupId(newGroupShared.getId()).sharedWithGroupId(newGroupSharedWith.getId()).accessLevel("Developer").build();
+        request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = new CreateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroupShared.getId()));
+        assertThat(response.getResourceModel().getMembershipId()).matches(s -> s.contains("" + newGroupSharedWith.getId()));
+        assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Developer");
+        assertThat(response.getErrorCode()).isNull();
+
+        assertThat(GroupAccessToGroupResourceHandler.getSharedWithGroups(gitlab, model.getSharedGroupId()))
+                .filteredOn(member -> member.groupId.equals(model.getSharedWithGroupId()))
+                .hasSize(1)
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.DEVELOPER));
+    }
+
+    @Test @Order(1)
+    public void testRead() {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        ProgressEvent<ResourceModel, CallbackContext> response = new ReadHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+    }
+
+    @Test @Order(2)
+    public void testList() {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        // no op
+        ProgressEvent<ResourceModel, CallbackContext> response = new ListHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModels()).anyMatch(m -> m.getMembershipId().equals(model.getMembershipId()));
+    }
+
+    @Test @Order(3)
+    public void testUpdateNoChange() {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        // no op
+        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+    }
+
+    @Test @Order(4)
+    public void testUpdateChangeAccessLevel() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        model.setAccessLevel("Reporter");
+        ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).describedAs("Create failed; code %s, message %s.", response.getErrorCode(), response.getMessage()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+        assertThat(response.getResourceModel().getAccessLevel()).isEqualTo("Reporter");
+
+        assertThat(GroupAccessToGroupResourceHandler.getSharedWithGroups(gitlab, model.getSharedGroupId()))
+                .filteredOn(member -> member.groupId.equals(model.getSharedWithGroupId()))
+                .hasSize(1)
+                .allMatch(member -> member.getAccessLevel().equals(AccessLevel.REPORTER));
+    }
+
+    @Test @Order(5)
+    public void testDelete() throws GitLabApiException {
+        if (model==null) fail("Create test must succeed for this to be meaningful.");
+
+        ProgressEvent<ResourceModel, CallbackContext> response = new DeleteHandler().handleRequest(proxy, request, null, logger, typeConfiguration);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getResourceModel().getMembershipId()).isEqualTo(model.getMembershipId());
+
+        assertThat(GroupAccessToGroupResourceHandler.getSharedWithGroups(gitlab, model.getSharedGroupId()))
+                .isEmpty();
+    }
+
+    @AfterAll
+    public void tearDown() {
+        try {
+            if (newGroupShared!=null) gitlab.getGroupApi().deleteGroup(newGroupShared.getId());
+            if (newGroupSharedWith!=null) gitlab.getGroupApi().deleteGroup(newGroupSharedWith.getId());
+        } catch (GitLabApiException e) {
+            LOG.error("Error during cleanup (ignoring, probably test failed and that is more interesting): "+e, e);
+        }
+    }
+
+}
