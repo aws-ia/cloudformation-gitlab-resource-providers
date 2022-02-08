@@ -32,9 +32,6 @@ public class GroupAccessToGroupCrudlLiveTest extends AbstractResourceCrudlLiveTe
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GroupAccessToGroupCrudlLiveTest.class);
 
-    final static Integer USER_ID_TO_ADD = Integer.parseInt(getEnvOrFile("user_id_to_add", "gitlab user ID to add to group (must exist as cannot create user via API, and must not be the group owner)"));
-    final static String USERNAME_TO_ADD = getEnvOrFile("username_to_add", "gitlab username to add to group (should match user_id)");
-
     Group newGroupShared = null;
     Group newGroupSharedWith = null;
 

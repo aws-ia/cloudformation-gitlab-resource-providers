@@ -93,7 +93,7 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
                 updates.add("Name");
             }
             if (!updates.isEmpty()) {
-                LOG.info("Changing item: " + existingItem);
+                //LOG.info("Changing item: " + existingItem);
                 gitlab.getProjectApi().updateProject(existingItem);
             }
         }

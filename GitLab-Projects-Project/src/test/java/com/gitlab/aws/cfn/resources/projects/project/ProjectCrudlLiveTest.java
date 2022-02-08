@@ -82,10 +82,10 @@ public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<Project,
         assertStatusSuccess(update);
         model = update.getResourceModel();
 
-        assertThat(model.getName()).isEqualTo("cfn-test-sample-project-renamed");
+        assertThat(model.getName()).isEqualTo("cfn-test-sample-project-renamed-"+TEST_ID);
 
         assertThat(getRealItem()).isNotNull()
-                .matches(p -> p.getName().endsWith("-renamed"));
+                .matches(p -> p.getName().contains("-renamed-"));
     }
 
 }
