@@ -54,11 +54,10 @@ TODO
 
 ## Registering Types and Running Examples
 
-First build the resources (deleting the `tests.jar` as that confuses `cfn submit`):
+First build the resources (optionally `-DskipTests` for speed or if a live test environment is not available):
 
 ```
 mvn clean install
-rm {.,GitLab-*}/target/*-tests.jar
 ```
 
 And register them, either individually:

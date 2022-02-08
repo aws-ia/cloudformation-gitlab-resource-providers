@@ -137,6 +137,11 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                        <configuration>
+                            <!-- prefix the tests jar so that cfn submit doesn't get confused;
+                                 note it gets named correctly in the m2 repository, so can be a dependency in the usual way -->
+                            <finalName>tests-${project.artifactId}-${project.version}</finalName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
