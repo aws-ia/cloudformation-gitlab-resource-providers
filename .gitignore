@@ -26,3 +26,4 @@ rpdk.log*
 # contains credentials
 sam-tests/
 .gitlab_cfn_tests
+.hypothesis
