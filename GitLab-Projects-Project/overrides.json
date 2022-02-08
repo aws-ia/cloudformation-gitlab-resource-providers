@@ -1,0 +1,8 @@
+{
+    "CREATE": {
+        "/Name": "cfn-test-sample-project"
+    },
+    "UPDATE": {
+        "/Name": "cfn-test-sample-project-renamed"
+    }
+}
