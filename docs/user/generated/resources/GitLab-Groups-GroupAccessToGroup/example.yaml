@@ -1,0 +1,10 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to give a GitLab group shared access to another GitLab group
+Resources:
+  MyUserJoiningAGroup:
+    Type: GitLab::Groups::GroupAccessToGroup
+    Properties:
+      SharedGroupId: 16020673
+      SharedWithGroupId: 1092680
+      AccessLevel: Maintainer

@@ -97,7 +97,7 @@ Once stored in SSM, it can be set for each resource type as follows:
 ```
 TYPE=GitLab::${XXX}::${YYY}
 SSM_PATH_TO_ACCESS_TOKEN=/cfn/gitlab/access-token
-aws cloudformation set-type-configuration \
+aws --output yaml --no-cli-pager cloudformation set-type-configuration \
   --type RESOURCE --type-name $TYPE \
   --configuration-alias default \
   --configuration '{"GitLabAccess": {"AccessToken": "{{resolve:ssm-secure:'${SSM_PATH_TO_ACCESS_TOKEN}'}}"}}'
