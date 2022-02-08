@@ -86,7 +86,7 @@ jobs:
     steps:
     - checkout
     - run: |
-        cd docker-build
+        cd .circleci/docker-build
         docker build --tag $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID .
     - run: docker login -u $DOCKER_REGISTRY_USERNAME -p "$DOCKER_REGISTRY_PASSWORD" $DOCKER_REGISTRY_HOST
     - run: docker push $DOCKER_REGISTRY_HOST/$DOCKER_REGISTRY_ORGANIZATION/$DOCKER_IMAGE_ID && sleep 10
