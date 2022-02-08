@@ -26,7 +26,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupAccessToGroupResourceHandler,GroupMember,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<GroupAccessToGroupResourceHandler,GroupMember,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<GroupAccessToGroupResourceHandler, ResourceModel,CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
             return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
         }
@@ -51,8 +51,7 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
 
         @Override
         public Pair<Integer, Integer> getId(ResourceModel model) {
-            if (model.getSharedGroupId()==null || model.getSharedWithGroupId()==null) return null;
-            return Pair.of(model.getSharedGroupId(), model.getSharedWithGroupId());
+            return GitLabUtils.pair(model.getSharedGroupId(), model.getSharedWithGroupId());
         }
 
         @Override

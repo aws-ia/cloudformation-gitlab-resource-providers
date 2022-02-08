@@ -1,6 +1,7 @@
 package com.gitlab.aws.cfn.resources.groups.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
+import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.fromNiceAccessLevelString;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.toNiceAccessLevelString;
 import java.util.Collections;
@@ -22,7 +23,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<UserMemberOfGroupResourceHandler,Member,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<UserMemberOfGroupResourceHandler,Member,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<UserMemberOfGroupResourceHandler, ResourceModel,CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
             return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
         }
@@ -47,8 +48,7 @@ public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedReso
 
         @Override
         public Pair<Integer,Integer> getId(ResourceModel model) {
-            if (model.getGroupId()==null || model.getUserId()==null) return null;
-            return Pair.of(model.getGroupId(),model.getUserId());
+            return GitLabUtils.pair(model.getGroupId(),model.getUserId());
         }
 
         @Override

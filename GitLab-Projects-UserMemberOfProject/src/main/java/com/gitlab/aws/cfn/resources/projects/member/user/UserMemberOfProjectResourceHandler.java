@@ -1,6 +1,7 @@
 package com.gitlab.aws.cfn.resources.projects.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
+import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.fromNiceAccessLevelString;
 import static com.gitlab.aws.cfn.resources.shared.GitLabUtils.toNiceAccessLevelString;
 import java.util.Collections;
@@ -21,7 +22,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class UserMemberOfProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<UserMemberOfProjectResourceHandler, Member, Pair<Integer,Integer>, ResourceModel, CallbackContext, TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<UserMemberOfProjectResourceHandler, Member, Pair<Integer,Integer>, ResourceModel, CallbackContext, TypeConfigurationModel> {
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<UserMemberOfProjectResourceHandler, ResourceModel, CallbackContext, TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
             return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
         }
@@ -45,8 +46,7 @@ public class UserMemberOfProjectResourceHandler extends AbstractGitlabCombinedRe
 
         @Override
         public Pair<Integer, Integer> getId(ResourceModel model) {
-            if (model.getProjectId()==null || model.getUserId()==null) return null;
-            return Pair.of(model.getProjectId(), model.getUserId());
+            return GitLabUtils.pair(model.getProjectId(), model.getUserId());
         }
 
         @Override

@@ -3,6 +3,7 @@ package com.gitlab.aws.cfn.resources.shared;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.models.AccessLevel;
 
 public class GitLabUtils {
@@ -20,4 +21,8 @@ public class GitLabUtils {
                 split(" ")).map(StringUtils::capitalize).collect(Collectors.joining(" "));
     }
 
+    public static <LT,RT> Pair<LT,RT> pair(LT left, RT right) {
+        if (left==null || right==null) return null;
+        return Pair.of(left, right);
+    }
 }

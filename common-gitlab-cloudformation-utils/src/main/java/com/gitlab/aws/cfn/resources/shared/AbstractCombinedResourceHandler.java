@@ -32,7 +32,7 @@ public abstract class AbstractCombinedResourceHandler<
 
     protected ProgressEvent<ResourceModelT, CallbackContextT> result = null;
 
-    public interface BaseHandlerAdapterDefault<This extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModel, CallbackContext, TypeConfigurationModel>, ItemT, IdT, ResourceModel, CallbackContext, TypeConfigurationModel> {
+    public interface BaseHandlerAdapterDefault<This extends AbstractCombinedResourceHandler<This,?,?, ResourceModel, CallbackContext, TypeConfigurationModel>, ResourceModel, CallbackContext, TypeConfigurationModel> {
         This newCombinedHandler();
 
         default ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
