@@ -8,8 +8,8 @@ Infrastructure-as-code such as CloudFormation is one of the best ways to create 
 
 Here are some sample use cases this supports:
 
-* [Set up a new project with the right users and groups](starting-a-project/)
-* [Manage the users and groups in my organization](org-group-user-management/)
+* [Manage the users and groups in my organization](stories/org-group-user-management/)
+* [Set up a new project with the right users and groups](stories/starting-a-project/)
 * TODO - others = create an access token for use by a CI pipeline
 * TODO - others = tag a project as part of a CI pipeline
 
