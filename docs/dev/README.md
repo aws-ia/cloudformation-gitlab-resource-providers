@@ -28,11 +28,13 @@ This project uses live tests. There isn't much else to test! The live tests requ
 connecting to GitLab and a few other arguments, set in the follow environment variables
 (or in files named similarly, e.g. `~/.gitlab_cfn_tests/access_token`):
 
-  GITLAB_CFN_TESTS_ACCESS_TOKEN=xxxxxxx    # a valid personal access token for gitlab.com
-  GITLAB_CFN_TESTS_USER_ID                 # numeric user ID corresponding to the above token
-  GITLAB_CFN_TESTS_USER_ID_TO_ADD          # numeric user ID of a _different_ user
-  GITLAB_CFN_TESTS_USERNAME_TO_ADD         # username of this different user
-
+```
+GITLAB_CFN_TESTS_ACCESS_TOKEN=xxxxxxx        # a valid personal access token for gitlab.com
+GITLAB_CFN_TESTS_USER_ID=123                 # numeric user ID corresponding to the above token
+GITLAB_CFN_TESTS_USER_ID_TO_ADD=456          # numeric user ID of a _different_ user
+GITLAB_CFN_TESTS_USERNAME_TO_ADD=bob         # username of this different user
+```
+~~~~
 With the above set, `mvn clean install` should work.
 
 The tests create projects and groups, but will typically clean up after themselves.
@@ -46,42 +48,83 @@ TODO
 
 ## Registering Types and Running Examples
 
-First, enter an access token into SSM (once) and then for each resource type, set the type configuration:
+First build the resources (deleting the `tests.jar` as that confuses `cfn submit`):
 
 ```
-aws cloudformation set-type-configuration \
---region eu-north-1 \
---type RESOURCE \
---type-name GitLab::${XXX}::${YYY} \
---configuration-alias default \
---configuration '{"GitLabAccess": {"AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/alex/access-token}}"}}'
+mvn clean install
+rm {.,GitLab-*}/target/*-tests.jar
 ```
 
-Then build and register the resource:
+And register them, either individually:
 
 ```
 cd GitLab-$XXX-$YYY
-mvn clean install
 cfn submit
+# aws cloudformation set-type-default-version ...    # required if previously installed
 ```
 
-If it has previously been installed, you may need to update the default version:
+Or looping through all of them (optionally include the `set-type-configuration` command from above in the loop,
+to set the type configuraition for each resource):
 
 ```
-aws cloudformation set-type-default-version ...
+for x in GitLab-* ; do
+  cd $x
+  TYPE=$(echo $x | sed s/-/::/g)
+  echo Registering $TYPE...
+  cfn submit
+  VERSION=$(aws --output yaml --no-cli-pager cloudformation list-type-versions --type RESOURCE --type-name $TYPE | \
+    grep 'Arn: arn:' | sort | tail -1 | sed 's/.*\///')
+  echo Using version $VERSION of $TYPE
+  aws cloudformation set-type-default-version --type RESOURCE --type-name $TYPE --version-id $VERSION 
+  cd ..
+done
 ```
 
-And if doing a lot of development, you will hit the limit on number of versions and need to delete old ones: 
+### Setting Type Configuration
+
+If this is the first time registering, you will need to set up the type configuration used for
+each of these types, containing the access token for connecting to GitLab.
+We recommend entering the access token into Systems Manager, say under path `/cfn/gitlab/access-token`,
+and then referring to it, e.g. as `{{resolve:ssm-secure:/cfn/gitlab/access-token}}`.
+
+Once stored in SSM, it can be set for each resource type as follows:
 
 ```
-aws cloudformation deregister-type ...
+TYPE=GitLab::${XXX}::${YYY}
+SSM_PATH_TO_ACCESS_TOKEN=/cfn/gitlab/access-token
+aws cloudformation set-type-configuration \
+  --type RESOURCE --type-name $TYPE \
+  --configuration-alias default \
+  --configuration '{"GitLabAccess": {"AccessToken": "{{resolve:ssm-secure:'${SSM_PATH_TO_ACCESS_TOKEN}'}}"}}'
 ```
+
+Or looping through all of them:
+
+```
+SSM_PATH_TO_ACCESS_TOKEN=/cfn/gitlab/alex/access-token
+for x in GitLab-* ; do
+  TYPE=$(echo $x | sed s/-/::/g)
+  echo Setting type configuration for $TYPE...
+  aws --output yaml --no-cli-pager cloudformation set-type-configuration \
+    --type RESOURCE --type-name $TYPE \
+    --configuration-alias default \
+    --configuration '{"GitLabAccess": {"AccessToken": "{{resolve:ssm-secure:'${SSM_PATH_TO_ACCESS_TOKEN}'}}"}}'
+done
+```
+
+
+### Running Examples
 
 Edit the values in the relevant example YAML (e.g. picking a valid parent group ID) and deploy with:
 
 ```
-aws cloudformation create-stack --stack-name gitlab-${XXX}-${YYY}-test --template-body file://docs-extra/example.yaml
+aws cloudformation create-stack --stack-name gitlab-test --template-body file://docs/path/to/resource/example.yaml
 ```
+
+You should see the stack update in the CloudFormation console, and see the result in GitLab.
+
+Thereafter you can `update-stack` and `delete-stack` in the usual way, combining these resources with others,
+passing references, as per normal CloudFormation..
 
 
 ## Defining New Resources
