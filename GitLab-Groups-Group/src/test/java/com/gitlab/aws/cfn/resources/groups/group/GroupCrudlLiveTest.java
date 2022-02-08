@@ -71,9 +71,10 @@ public class GroupCrudlLiveTest extends GitLabLiveTestSupport {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getErrorCode()).isNull();
 
-        assertThat(gitlab.getGroupApi().getGroup(model.getId())).isNotNull()
+        // not always available immediately
+        assertSoon(() -> assertThat(gitlab.getGroupApi().getGroup(model.getId())).isNotNull()
                 .matches(g -> g.getName().equals(model.getName()))
-                .matches(g -> g.getPath().equals(model.getPath()));
+                .matches(g -> g.getPath().equals(model.getPath())));
     }
 
     @Test @Order(1)
