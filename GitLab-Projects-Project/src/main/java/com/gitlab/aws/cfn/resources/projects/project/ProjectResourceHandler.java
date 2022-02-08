@@ -15,9 +15,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
+import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.ProjectSharedGroup;
 import org.slf4j.LoggerFactory;
@@ -28,13 +30,18 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<Project, ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext, TypeConfigurationModel, ProjectResourceHandler> {
+public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<ProjectResourceHandler,Project,Integer, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectResourceHandler.class);
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> {
-        @Override public ProgressEvent<ResourceModel, com.gitlab.aws.cfn.resources.projects.project.CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, com.gitlab.aws.cfn.resources.projects.project.CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
-            return new ProjectResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<ProjectResourceHandler,Project,Integer, ResourceModel,CallbackContext,TypeConfigurationModel> {
+        @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
+            return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
+        }
+
+        @Override
+        public ProjectResourceHandler newCombinedHandler() {
+            return new ProjectResourceHandler();
         }
     }
 
@@ -48,12 +55,15 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
         return new ProjectHelper();
     }
 
-    public class ProjectHelper extends Helper<Project> {
+    public class ProjectHelper extends Helper {
+        @Override
+        public Integer getId(ResourceModel model) {
+            return model.getId();
+        }
 
         @Override
-        public Optional<Project> readExistingItem() {
-            if (model==null || model.getId()==null) return Optional.empty();
-            return gitlab.getProjectApi().getOptionalProject(model.getId());
+        public Optional<Project> findExistingItemWithNonNullId(Integer id) throws Exception {
+            return gitlab.getProjectApi().getOptionalProject(id);
         }
 
         @Override

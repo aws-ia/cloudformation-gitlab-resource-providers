@@ -2,6 +2,7 @@ package com.gitlab.aws.cfn.resources.groups.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApiException;
@@ -28,7 +29,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class UserMemberOfGroupCrudlLiveTest extends AbstractResourceCrudlLiveTest<Member,ResourceModel,CallbackContext,TypeConfigurationModel> {
+public class UserMemberOfGroupCrudlLiveTest extends AbstractResourceCrudlLiveTest<UserMemberOfGroupResourceHandler,Member,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(UserMemberOfGroupCrudlLiveTest.class);
 
@@ -63,16 +64,6 @@ public class UserMemberOfGroupCrudlLiveTest extends AbstractResourceCrudlLiveTes
     @Override
     protected HandlerWrapper newHandlerWrapper() {
         return new HandlerWrapper();
-    }
-
-    @Override
-    protected Member getRealItem() throws Exception {
-        return gitlab.getGroupApi().getMember(model.getGroupId(), model.getUserId());
-    }
-
-    @Override
-    protected Optional<Member> getRealItem(Member item) throws Exception {
-        return gitlab.getGroupApi().getOptionalMember(model.getGroupId(), item.getId());
     }
 
     @Test @Order(10)

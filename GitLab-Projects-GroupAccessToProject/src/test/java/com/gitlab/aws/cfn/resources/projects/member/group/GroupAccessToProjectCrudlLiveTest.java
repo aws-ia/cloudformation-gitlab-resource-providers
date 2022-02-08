@@ -2,6 +2,7 @@ package com.gitlab.aws.cfn.resources.projects.member.group;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApiException;
@@ -29,7 +30,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class GroupAccessToProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<ProjectSharedGroup,ResourceModel,CallbackContext,TypeConfigurationModel> {
+public class GroupAccessToProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<GroupAccessToProjectResourceHandler,ProjectSharedGroup, Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(GroupAccessToProjectCrudlLiveTest.class);
 
@@ -50,16 +51,6 @@ public class GroupAccessToProjectCrudlLiveTest extends AbstractResourceCrudlLive
     @Override
     protected HandlerWrapper newHandlerWrapper() {
         return new HandlerWrapper();
-    }
-
-    @Override
-    protected ProjectSharedGroup getRealItem() throws Exception {
-        return gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups().stream().filter(share -> model.getGroupId().equals(share.getGroupId())).findFirst().get();
-    }
-
-    @Override
-    protected Optional<ProjectSharedGroup> getRealItem(ProjectSharedGroup item) throws Exception {
-        return gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups().stream().filter(share -> item.getGroupId() == share.getGroupId()).findFirst();
     }
 
     @Test @Order(10)

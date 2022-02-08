@@ -1,6 +1,8 @@
 package com.gitlab.aws.cfn.resources.shared;
 
+import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler.BaseHandlerAdapterDefault;
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +36,10 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public abstract class AbstractResourceCrudlLiveTest<ItemT,ResourceModelT,CallbackContextT,TypeConfigurationModelT> extends GitLabLiveTestSupport {
+public abstract class AbstractResourceCrudlLiveTest<
+        CombinedHandlerT extends AbstractCombinedResourceHandler<CombinedHandlerT, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
+        ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+        extends GitLabLiveTestSupport {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractResourceCrudlLiveTest.class);
 
@@ -58,10 +63,10 @@ public abstract class AbstractResourceCrudlLiveTest<ItemT,ResourceModelT,Callbac
     protected abstract TypeConfigurationModelT newTypeConfiguration() throws Exception;
     protected abstract ResourceModelT newModelForCreate() throws Exception;
 
-    protected abstract LambdaWrapper<ResourceModelT, CallbackContextT, TypeConfigurationModelT> newHandlerWrapper();
+    protected abstract LambdaWrapper<ResourceModelT,CallbackContextT,TypeConfigurationModelT> newHandlerWrapper();
 
-    protected LambdaWrapper<ResourceModelT, CallbackContextT, TypeConfigurationModelT> newHandlerWrapperInitialized() {
-        LambdaWrapper<ResourceModelT, CallbackContextT, TypeConfigurationModelT> wrapper = newHandlerWrapper();
+    protected LambdaWrapper<ResourceModelT,CallbackContextT,TypeConfigurationModelT> newHandlerWrapperInitialized() {
+        LambdaWrapper<ResourceModelT,CallbackContextT,TypeConfigurationModelT> wrapper = newHandlerWrapper();
         try {
             Field lp = AbstractWrapper.class.getDeclaredField("loggerProxy");
             lp.setAccessible(true);
@@ -74,13 +79,33 @@ public abstract class AbstractResourceCrudlLiveTest<ItemT,ResourceModelT,Callbac
         }
     }
 
-    protected ProgressEvent<ResourceModelT, CallbackContextT> invoke(Action action) throws Exception {
+    protected ProgressEvent<ResourceModelT,CallbackContextT> invoke(Action action) throws Exception {
         return newHandlerWrapperInitialized().invokeHandler(proxy, newRequestObject(), action, null, typeConfiguration);
     }
 
-    protected abstract ItemT getRealItem() throws Exception;
+    @SuppressWarnings("unchecked")
+    protected AbstractCombinedResourceHandler<CombinedHandlerT, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>.Helper newHandlerHelper() {
+        try {
+            Object hw = newHandlerWrapper();
+            Field f = hw.getClass().getDeclaredField("handlers");
+            f.setAccessible(true);
+            AbstractCombinedResourceHandler combined = ((BaseHandlerAdapterDefault) (((Map) f.get(hw)).values().iterator().next())).newCombinedHandler();
+            combined.init(proxy, newRequestObject(), null, logger, newTypeConfiguration());
+            return (CombinedHandlerT.Helper) combined.newHelper();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    protected abstract Optional<ItemT> getRealItem(ItemT item) throws Exception;
+    protected final ItemT getRealItem() throws Exception {
+        AbstractCombinedResourceHandler<CombinedHandlerT, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>.Helper helper = newHandlerHelper();
+        return helper.findExistingItemWithId(helper.getId(model)).get();
+    }
+
+    protected final Optional<ItemT> getRealItem(ItemT item) throws Exception {
+        AbstractCombinedResourceHandler<CombinedHandlerT, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>.Helper helper = newHandlerHelper();
+        return helper.findExistingItemWithId(helper.getId(helper.modelFromItem(item)));
+    }
 
     @BeforeAll
     public void initTestHandlerItems() throws Exception {

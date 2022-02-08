@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
@@ -15,11 +16,16 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<ProjectSharedGroup,ResourceModel, CallbackContext, TypeConfigurationModel, GroupAccessToProjectResourceHandler> {
+public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupAccessToProjectResourceHandler,ProjectSharedGroup, Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> {
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<GroupAccessToProjectResourceHandler,ProjectSharedGroup, Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
-            return new GroupAccessToProjectResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+            return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
+        }
+
+        @Override
+        public GroupAccessToProjectResourceHandler newCombinedHandler() {
+            return new GroupAccessToProjectResourceHandler();
         }
     }
 
@@ -33,11 +39,16 @@ public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedR
         return new ProjectSharedGroupHelper();
     }
 
-    public class ProjectSharedGroupHelper extends Helper<ProjectSharedGroup> {
+    public class ProjectSharedGroupHelper extends Helper {
+        @Override
+        public Pair<Integer,Integer> getId(ResourceModel model) {
+            if (model.getProjectId()==null || model.getGroupId()==null) return null;
+            return Pair.of(model.getProjectId(), model.getGroupId());
+        }
 
         @Override
-        public Optional<ProjectSharedGroup> readExistingItem() throws GitLabApiException {
-            return gitlab.getProjectApi().getProject(model.getProjectId()).getSharedWithGroups().stream().filter(share -> model.getGroupId().equals(share.getGroupId())).findFirst();
+        protected Optional<ProjectSharedGroup> findExistingItemWithNonNullId(Pair<Integer,Integer> id) throws Exception {
+            return findExistingItemWithIdDefaultInefficiently(id);
         }
 
         @Override
@@ -66,13 +77,13 @@ public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedR
         }
 
         @Override
-        public ProjectSharedGroup createItem() throws GitLabApiException {
+        public ProjectSharedGroup createItem() throws Exception {
             gitlab.getProjectApi().shareProject(model.getProjectId(), model.getGroupId(), getAccessLevel(), null);
-            return readExistingItem().get();
+            return findExistingItemMatchingModel().get();
         }
 
         @Override
-        public void updateItem(ProjectSharedGroup existingItem, List<String> updates) throws GitLabApiException {
+        public void updateItem(ProjectSharedGroup existingItem, List<String> updates) throws Exception {
             if (!Objects.equals(getAccessLevel(), existingItem.getGroupAccessLevel())) {
                 updates.add("AccessLevel");
             }

@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
@@ -17,15 +17,19 @@ import org.gitlab4j.api.models.User;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<Member,ResourceModel, CallbackContext, TypeConfigurationModel, UserMemberOfGroupResourceHandler> {
+public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<UserMemberOfGroupResourceHandler,Member,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> {
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<UserMemberOfGroupResourceHandler,Member,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
         @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
-            return new UserMemberOfGroupResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+            return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
+        }
+
+        @Override
+        public UserMemberOfGroupResourceHandler newCombinedHandler() {
+            return new UserMemberOfGroupResourceHandler();
         }
     }
 
@@ -39,11 +43,17 @@ public class UserMemberOfGroupResourceHandler extends AbstractGitlabCombinedReso
         return new MemberHelper();
     }
 
-    public class MemberHelper extends Helper<Member> {
+    public class MemberHelper extends Helper {
 
         @Override
-        public Optional<Member> readExistingItem() throws GitLabApiException {
-            return gitlab.getGroupApi().getOptionalMember(model.getGroupId(), model.getUserId());
+        public Pair<Integer,Integer> getId(ResourceModel model) {
+            if (model.getGroupId()==null || model.getUserId()==null) return null;
+            return Pair.of(model.getGroupId(),model.getUserId());
+        }
+
+        @Override
+        protected Optional<Member> findExistingItemWithNonNullId(Pair<Integer, Integer> id) throws Exception {
+            return gitlab.getGroupApi().getOptionalMember(id.getLeft(), id.getRight());
         }
 
         @Override

@@ -1,17 +1,15 @@
 package com.gitlab.aws.cfn.resources.shared;
 
-import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler.Helper;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.function.FailableRunnable;
-import org.gitlab4j.api.models.Project;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.cloudformation.model.ResourceChange;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -19,26 +17,36 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, CallbackContext, TypeConfigurationModel, This extends AbstractCombinedResourceHandler<ItemT, ResourceModel, CallbackContext, TypeConfigurationModel, This>>
-        implements HandlerMixins<ResourceModel, CallbackContext> {
+public abstract class AbstractCombinedResourceHandler<
+        This extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
+        ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+        implements HandlerMixins<ResourceModelT, CallbackContextT> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractCombinedResourceHandler.class);
 
-    protected ResourceHandlerRequest<ResourceModel> request;
-    protected CallbackContext callbackContext;
+    protected ResourceHandlerRequest<ResourceModelT> request;
+    protected CallbackContextT callbackContext;
     protected Logger logger;
-    protected TypeConfigurationModel typeConfiguration;
-    protected ResourceModel model;
+    protected TypeConfigurationModelT typeConfiguration;
+    protected ResourceModelT model;
 
-    protected ProgressEvent<ResourceModel, CallbackContext> result = null;
+    protected ProgressEvent<ResourceModelT, CallbackContextT> result = null;
+
+    public interface BaseHandlerAdapterDefault<This extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModel, CallbackContext, TypeConfigurationModel>, ItemT, IdT, ResourceModel, CallbackContext, TypeConfigurationModel> {
+        This newCombinedHandler();
+
+        default ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
+            return newCombinedHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public This init(
             AmazonWebServicesClientProxy proxy,
-            ResourceHandlerRequest<ResourceModel> request,
-            CallbackContext callbackContext,
+            ResourceHandlerRequest<ResourceModelT> request,
+            CallbackContextT callbackContext,
             Logger logger,
-            TypeConfigurationModel typeConfiguration) {
+            TypeConfigurationModelT typeConfiguration) {
 
         this.request = request;
         this.callbackContext = callbackContext;
@@ -55,7 +63,7 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
             LOG.debug("Trace for error: "+e, e);
 
             if (e instanceof FailureToSetInResult) {
-                result = (ProgressEvent<ResourceModel, CallbackContext>) ((FailureToSetInResult)e).getResult();
+                result = (ProgressEvent<ResourceModelT, CallbackContextT>) ((FailureToSetInResult)e).getResult();
             } else {
                 result = failure(e);
             }
@@ -64,9 +72,9 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
         return (This) this;
     }
 
-    public ResourceModel getModel() { return model; }
+    public ResourceModelT getModel() { return model; }
 
-    private final Map<String,Supplier<ProgressEvent<ResourceModel, CallbackContext>>> actionClazzNames = new LinkedHashMap<>();
+    private final Map<String,Supplier<ProgressEvent<ResourceModelT, CallbackContextT>>> actionClazzNames = new LinkedHashMap<>();
     {
         actionClazzNames.put("CreateHandler", this::safeCreate);
         actionClazzNames.put("ReadHandler", this::safeRead);
@@ -74,12 +82,12 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
         actionClazzNames.put("DeleteHandler", this::safeDelete);
         actionClazzNames.put("ListHandler", this::safeList);
     }
-    public ProgressEvent<ResourceModel, CallbackContext> applyActionForHandlerClass(Class<?> clazz) {
+    public ProgressEvent<ResourceModelT, CallbackContextT> applyActionForHandlerClass(Class<?> clazz) {
         return actionClazzNames.get(clazz.getSimpleName()).get();
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends Throwable> ProgressEvent<ResourceModel, CallbackContext> safely(FailableRunnable<T> task) {
+    protected <T extends Throwable> ProgressEvent<ResourceModelT, CallbackContextT> safely(FailableRunnable<T> task) {
         if (result!=null) return result;
 
         try {
@@ -92,7 +100,7 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
             LOG.debug("Trace for error: "+e, e);
 
             if (e instanceof FailureToSetInResult) {
-                result = (ProgressEvent<ResourceModel, CallbackContext>) ((FailureToSetInResult)e).getResult();
+                result = (ProgressEvent<ResourceModelT, CallbackContextT>) ((FailureToSetInResult)e).getResult();
             } else {
                 result = failure(e);
             }
@@ -101,11 +109,11 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
         return result;
     }
 
-    public ProgressEvent<ResourceModel, CallbackContext> safeCreate() { return safely(this::create); }
-    public ProgressEvent<ResourceModel, CallbackContext> safeRead() { return safely(this::read); }
-    public ProgressEvent<ResourceModel, CallbackContext> safeUpdate() { return safely(this::update); }
-    public ProgressEvent<ResourceModel, CallbackContext> safeDelete() { return safely(this::delete); }
-    public ProgressEvent<ResourceModel, CallbackContext> safeList() { return safely(this::list); }
+    public ProgressEvent<ResourceModelT, CallbackContextT> safeCreate() { return safely(this::create); }
+    public ProgressEvent<ResourceModelT, CallbackContextT> safeRead() { return safely(this::read); }
+    public ProgressEvent<ResourceModelT, CallbackContextT> safeUpdate() { return safely(this::update); }
+    public ProgressEvent<ResourceModelT, CallbackContextT> safeDelete() { return safely(this::delete); }
+    public ProgressEvent<ResourceModelT, CallbackContextT> safeList() { return safely(this::list); }
 
     protected void doInit() throws Exception {
         // nothing here, but can be overridden
@@ -117,34 +125,49 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
     protected void delete() throws Exception { newHelper().delete(); };
     protected void list() throws Exception { newHelper().list(); };
 
-    public abstract Helper<ItemT> newHelper();
+    public abstract Helper newHelper();
 
-    public abstract class Helper<ItemT> {
-        public abstract Optional<ItemT> readExistingItem() throws Exception;
+    public abstract class Helper {
+        public abstract IdT getId(ResourceModelT model);
+        public final Optional<ItemT> findExistingItemMatchingModel() throws Exception {
+            if (model==null) return Optional.empty();
+            return findExistingItemWithId(getId(model));
+        }
+
+        public final Optional<ItemT> findExistingItemWithId(IdT id) throws Exception {
+            if (id==null) return Optional.empty();
+            return findExistingItemWithNonNullId(id);
+        }
+        protected abstract Optional<ItemT> findExistingItemWithNonNullId(IdT id) throws Exception;
+
+        protected Optional<ItemT> findExistingItemWithIdDefaultInefficiently(IdT id) throws Exception {
+            return readExistingItems().stream().filter(item -> Objects.equals(id, getId(modelFromItem(item)))).findAny();
+        }
+
         public abstract List<ItemT> readExistingItems() throws Exception;
-        public abstract ResourceModel modelFromItem(ItemT item);
+        public abstract ResourceModelT modelFromItem(ItemT item);
         public abstract ItemT createItem() throws Exception;
         public abstract void updateItem(ItemT item, List<String> updates) throws Exception;
         public abstract void deleteItem(ItemT item) throws Exception;
 
         public void create() throws Exception {
-            Optional<ItemT> item = readExistingItem();
+            Optional<ItemT> item = findExistingItemMatchingModel();
             if (item.isPresent()) fail(HandlerErrorCode.AlreadyExists, "Resource already exists.");
             model = modelFromItem(createItem());
         }
 
         public void read() throws Exception {
-            Optional<ItemT> item = readExistingItem();
+            Optional<ItemT> item = findExistingItemMatchingModel();
             if (!item.isPresent()) failNotFound();
             model = modelFromItem(item.get());
         }
 
         public void update() throws Exception {
-            Optional<ItemT> item = readExistingItem();
+            Optional<ItemT> item = findExistingItemMatchingModel();
             if (!item.isPresent()) failNotFound();
             List<String> updates = new ArrayList<>();
             updateItem(item.get(), updates);
-            if (!updates.isEmpty()) item = readExistingItem();
+            if (!updates.isEmpty()) item = findExistingItemMatchingModel();
             model = modelFromItem(item.get());
             result = success(updates.isEmpty()
                     ? "No changes"
@@ -152,15 +175,15 @@ public abstract class AbstractCombinedResourceHandler<ItemT,  ResourceModel, Cal
         }
 
         public void delete() throws Exception {
-            Optional<ItemT> item = readExistingItem();
+            Optional<ItemT> item = findExistingItemMatchingModel();
             if (!item.isPresent()) failNotFound();
             deleteItem(item.get());
             model = null;
         }
 
         public void list() throws Exception {
-            List<ResourceModel> models = readExistingItems().stream().map(this::modelFromItem).collect(Collectors.toList());
-            result = ProgressEvent.<ResourceModel, CallbackContext>builder()
+            List<ResourceModelT> models = readExistingItems().stream().map(this::modelFromItem).collect(Collectors.toList());
+            result = ProgressEvent.<ResourceModelT, CallbackContextT>builder()
                     .resourceModels(models)
                     .status(OperationStatus.SUCCESS)
                     .build();

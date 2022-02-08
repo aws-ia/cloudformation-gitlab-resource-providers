@@ -1,7 +1,6 @@
 package com.gitlab.aws.cfn.resources.projects.project;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
-import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.models.Project;
@@ -23,7 +22,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<Project,ResourceModel,CallbackContext,TypeConfigurationModel> {
+public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<ProjectResourceHandler,Project,Integer,ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(ProjectCrudlLiveTest.class);
 
@@ -34,23 +33,13 @@ public class ProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<Project,
                 .build();
     }
 
-    protected ResourceModel newModelForCreate() {
-        return ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).build();
-    }
-
     @Override
     protected HandlerWrapper newHandlerWrapper() {
         return new HandlerWrapper();
     }
 
-    @Override
-    protected Project getRealItem() throws Exception {
-        return gitlab.getProjectApi().getProject(model.getId());
-    }
-
-    @Override
-    protected Optional<Project> getRealItem(Project item) throws Exception {
-        return gitlab.getProjectApi().getOptionalProject(item.getId());
+    protected ResourceModel newModelForCreate() {
+        return ResourceModel.builder().name(TEST_PREFIX+"-"+TEST_ID).build();
     }
 
     @Test @Order(41)

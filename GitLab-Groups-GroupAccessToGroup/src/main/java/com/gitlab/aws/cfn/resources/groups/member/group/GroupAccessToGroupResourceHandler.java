@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.AbstractApi;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
@@ -23,11 +24,16 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupMember,ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext, TypeConfigurationModel, GroupAccessToGroupResourceHandler> {
+public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupAccessToGroupResourceHandler,GroupMember,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
-    public static class BaseHandlerAdapter extends BaseHandler<com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext,TypeConfigurationModel> {
-        @Override public ProgressEvent<ResourceModel, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, com.gitlab.aws.cfn.resources.groups.member.group.CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
-            return new GroupAccessToGroupResourceHandler().init(proxy, request, callbackContext, logger, typeConfiguration).applyActionForHandlerClass(getClass());
+    public static class BaseHandlerAdapter extends BaseHandler<CallbackContext,TypeConfigurationModel> implements BaseHandlerAdapterDefault<GroupAccessToGroupResourceHandler,GroupMember,Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
+        @Override public ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
+            return BaseHandlerAdapterDefault.super.handleRequest(proxy, request, callbackContext, logger, typeConfiguration);
+        }
+
+        @Override
+        public GroupAccessToGroupResourceHandler newCombinedHandler() {
+            return new GroupAccessToGroupResourceHandler();
         }
     }
 
@@ -41,11 +47,17 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
         return new GroupMemberHelper();
     }
 
-    public class GroupMemberHelper extends Helper<GroupMember> {
+    public class GroupMemberHelper extends Helper {
 
         @Override
-        public Optional<GroupMember> readExistingItem() throws GitLabApiException {
-            return readExistingItems().stream().filter(g -> g.groupId.equals(model.getSharedWithGroupId())).findAny();
+        public Pair<Integer, Integer> getId(ResourceModel model) {
+            if (model.getSharedGroupId()==null || model.getSharedWithGroupId()==null) return null;
+            return Pair.of(model.getSharedGroupId(), model.getSharedWithGroupId());
+        }
+
+        @Override
+        protected Optional<GroupMember> findExistingItemWithNonNullId(Pair<Integer, Integer> id) throws Exception {
+            return findExistingItemWithIdDefaultInefficiently(id);
         }
 
         @Override
@@ -96,7 +108,7 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
     public static class GroupMember {
         Integer groupId;
         Integer accessLevel;
-        static GroupMember of(Map m) {
+        static GroupMember of(Map<?,?> m) {
             GroupMember result = new GroupMember();
             result.groupId = (Integer) m.get("group_id");
             result.accessLevel = (Integer) m.get("group_access_level");
@@ -119,11 +131,12 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
         return getSharedWithGroups(gitlab, groupId);
     }
 
+    @SuppressWarnings("unchecked")
     public static List<GroupMember> getSharedWithGroups(GitLabApi gitlab, Integer groupId) throws GitLabApiException {
         return new AbstractApi(gitlab) {
             public List<GroupMember> getSharedGroups(Integer groupId) throws GitLabApiException {
                 Response r = get(Status.OK, null, "groups", groupId);
-                Map map = r.readEntity(Map.class);
+                Map<?,?> map = r.readEntity(Map.class);
                 Object sharedWith = map.get("shared_with_groups");
                 if (sharedWith instanceof List) {
                     return ((List<Map<?,?>>) sharedWith).stream().map(GroupMember::of).collect(Collectors.toList());

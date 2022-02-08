@@ -1,7 +1,7 @@
 package com.gitlab.aws.cfn.resources.projects.member.user;
 
 import com.gitlab.aws.cfn.resources.shared.AbstractResourceCrudlLiveTest;
-import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.gitlab4j.api.GitLabApiException;
@@ -26,7 +26,8 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(OrderAnnotation.class)
 @Tag("Live")
-public class UserMemberOfProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest<Member,ResourceModel,CallbackContext,TypeConfigurationModel> {
+public class UserMemberOfProjectCrudlLiveTest extends AbstractResourceCrudlLiveTest
+        <UserMemberOfProjectResourceHandler, Member, Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(UserMemberOfProjectCrudlLiveTest.class);
 
@@ -35,7 +36,6 @@ public class UserMemberOfProjectCrudlLiveTest extends AbstractResourceCrudlLiveT
     final static String USERNAME_TO_ADD = getEnvOrFile("username_to_add", "gitlab username to add to group (should match user_id)");
 
     Project newProject = null;
-
 
     @Override
     protected TypeConfigurationModel newTypeConfiguration() {
@@ -55,16 +55,6 @@ public class UserMemberOfProjectCrudlLiveTest extends AbstractResourceCrudlLiveT
     @Override
     protected HandlerWrapper newHandlerWrapper() {
         return new HandlerWrapper();
-    }
-
-    @Override
-    protected Member getRealItem() throws Exception {
-        return gitlab.getProjectApi().getMember(model.getProjectId(), model.getUserId());
-    }
-
-    @Override
-    protected Optional<Member> getRealItem(Member item) throws Exception {
-        return gitlab.getProjectApi().getOptionalMember(model.getProjectId(), item.getId());
     }
 
     @Test @Order(10)

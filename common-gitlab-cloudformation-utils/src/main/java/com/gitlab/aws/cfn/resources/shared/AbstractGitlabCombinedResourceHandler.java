@@ -3,8 +3,10 @@ package com.gitlab.aws.cfn.resources.shared;
 import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.GitLabApi;
 
-public abstract class AbstractGitlabCombinedResourceHandler<ItemT, ResourceModel, CallbackContext, TypeConfigurationModel, This extends AbstractGitlabCombinedResourceHandler<ItemT, ResourceModel, CallbackContext, TypeConfigurationModel, This>>
-        extends AbstractCombinedResourceHandler<ItemT, ResourceModel, CallbackContext, TypeConfigurationModel, This> {
+public abstract class AbstractGitlabCombinedResourceHandler<
+            This extends AbstractGitlabCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
+            ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+        extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT> {
 
     public final static String DEFAULT_URL = "https://gitlab.com/";
 
@@ -17,7 +19,7 @@ public abstract class AbstractGitlabCombinedResourceHandler<ItemT, ResourceModel
         }
     }
     
-    protected abstract GitLabApi newGitLabApiFromTypeConfiguration(TypeConfigurationModel typeModel);
+    protected abstract GitLabApi newGitLabApiFromTypeConfiguration(TypeConfigurationModelT typeModel);
 
     protected String firstNonBlank(String ...args) {
         for (String arg: args) {
