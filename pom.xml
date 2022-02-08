@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>common-cloudformation-utils-gitlab</module>
+        <module>common-gitlab-cloudformation-utils</module>
         <module>GitLab-Groups-Group</module>
         <module>GitLab-Groups-UserMemberOfGroup</module>
         <module>GitLab-Projects-Project</module>
