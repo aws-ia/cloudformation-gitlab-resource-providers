@@ -44,28 +44,34 @@ With the above set, `mvn clean install` should work.
 
 The tests create projects and groups, but will typically clean up after themselves.
 If they do not (e.g. because they are interrupted) the tool `GitLabCleanup.java` can be used to find and delete test resources.
-(They are also easy to spot at GitLab as they all have the prefix "cfn-test".) 
+
+Wherever possible, test resources in GitLab should be created with the prefix `cfn-test` to make them easy to find and support automated cleanup.
 
 
-### Serverless Tests
+### Serverless and Contract Tests
 
-On top of the live test, AWS offers capabilities of testing resources locally using SAM (Serverless Application Model).
-There are two components involved: `SAM template specification` (which provides you with a simple and clean syntax to describe the functions, APIs, permissions, configurations, and events that make up a serverless application) and `SAM CLI`.
-It is also required to have docker installed and running on your machine, as it is required for testing locally (AWS SAM provides a local environment similar to Lambda to use as Docker container).
+This project can also use [CloudFormation Serverless and Contract Tests](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html),
+using [AWS Serverless Application Model (SAM)](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html).
+These allow:
 
-In order to install `AWS SAM CLI`, use the following command:
-```
-brew tap aws/tap
-brew install aws-sam-cli
-```
-Verify the installation:
-```
-sam --version
-```
+* Local testing of resource code as lambdas, to ensure payload encapsulation and results for individual requests
+* CFN contract tests, to ensure compliance with CFN expectations (some of which are a little surprising)
+  and to test sequences of requests possibly including callbacks (although GitLab resources are quick enough they do not use callbacks)
 
-#### Local Testing with provided data
-In order to carry out local testing, we need to create a test data file for each handler developed for the resource.
-For example, in the root of the resource project we can create a file `./sam-tests/create.json` with the following content:
+This project does not perform this testing automatically, nor does it maintain test artifacts in all cases,
+due to the time to run and overhead of creating dependencies.  The Java Live tests give good coverage,
+and the resources are tested as installed to CloudFormation.
+However from time to time it may be useful to run serverless tests, to confirm obscure contract compliance
+and to test serverless locally.
+
+To run sererless tests, first ensure `sam` is set up and available (per the links above).
+
+
+#### Local Serverless Single Request Testing
+
+To run a single local serverless test, simply create a file containing the payload, including the type configuration;
+e.g. the following `sam-tests/create-1.json`:
+
 ```
 {
     "credentials": {
@@ -76,48 +82,80 @@ For example, in the root of the resource project we can create a file `./sam-tes
     },
     "action": "CREATE",
     "request": {
-        "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe", # Can be any UUID.
+        # Can be any UUID.
+        "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe", 
         "desiredResourceState": {
-            "Name": "test" #specify properties required as per resource schema
+            # specify properties required as per resource schema
+            "Name": "test" 
         },
         "logicalResourceIdentifier": "TestResource"
     },
-    "callbackContext": null
+    "callbackContext": null,
+    "typeConfiguration": {
+      "gitLabAccess": {
+        # set your actual GitLab access token here
+        "accessToken": "pat12-34567890abcdef"
+      }
+    }
 }
 ```
-The test can then be invoked using the CLI:
+
+(Remove the lines which start with `#`.)
+
+The test can then be invoked and the output inspected using the CLI:
+
 ```
-sam local invoke TestEntrypoint --event sam-tests/create.json
+sam local invoke TestEntrypoint --event sam-tests/create-1.json
 ```
 
-#### Testing with generated data
-Specify type configuration in `~/.cfn-cli/typeConfiguration.json`:
+
+#### CFN Contract Testing
+
+To use the standsrd `cfn test` contract testing automation, which runs a series of commands,
+including callbacks, and some create-update-delete cycles, you must first set the type configuration
+to use. This is done in `~/.cfn-cli/typeConfiguration.json`:
 ```
 {
   "gitLabAccess": {
-    "accessToken": "xxx"
+    "accessToken": "pat12-34567890abcdef"
   }
 }
 ```
 
-Run lambda tests:
+For most resources it is also necessary to set specific parameters to pass for CREATE and UPDATE,
+e.g. in `GitLab-Projects-Project`:
+
+```
+{
+    "CREATE": {
+        "/Name": "cfn-test-sample-project"
+    },
+    "UPDATE": {
+        "/Name": "cfn-test-sample-project-renamed"
+    }
+}
+```
+
+If there are resources in GitLab which must exist prior to execution, add them manually
+(or in `template.yml` and you can then refer to them per the instructions above). 
+
+Next start the lambda:
+
 ```
 sam local start-lambda
 ```
-another terminal window
+
+And in another terminal window run the tests:
+
 ```
 cfn test
 ```
 
-Test with Overrides:
-`overrides.json`
-```
-{
-  "CREATE": {
-    "/Name": "sampleproject"
-  }
-}
-```
+If tests do not pass, it can be useful to inspect `rpdk.log` as well as the output in each of the terminal windows,
+and the [Python test suite source code](https://github.com/aws-cloudformation/cloudformation-cli/blob/master/src/rpdk/core/contract/suite/).
+In particular it is easy to interrupt tests leaving GitLab in a state where the resource already exists;
+run the `GitLabCleanup` class described previously and try again.
+
 
 ## Registering Types and Running Examples
 
@@ -201,6 +239,23 @@ passing references, as per normal CloudFormation..
 
 ## Defining New Resources
 
+### Design Notes
+
+Due to the highly regular nature of the GitLab API, much of the work is done by abstract superclasses.
+However in order to be able to leverage `cfn generate` to autogenerate model classes on schema changes,
+there is a bit of a subtle pattern to route from the generated `HandlerWrapper` to the generated-once-and-required
+`CreateHandler` (and others) then back to a single concrete combined handler extending the abstract superclass.
+
+The scaffolding is thus a bit clumsy, but it means the actual code needed to be written and maintained for
+any resource is quite small, and the majority of the CFN contract behaviour including error checks and
+required responses is handled automatically.
+
+There is also scaffolding for tests allowing a default pattern of CRUD to be easily and automatically written,
+extended with other tests where desired. 
+
+
+### How to Add Code for a New GitLab Resource
+
 The recommended way to add a new resource is to use `cfn init` in the directory for the new resource,
 e.g. `GitLab-Xxxx-Yyyyy`,
 using a package such as `com.gitlab.aws.cfn.resources.xxxx.yyyy`.
@@ -225,3 +280,4 @@ Then to develop:
 * Edit the `XxxxResourceHandler` and `XxxxCrudlLiveTest` to do the right thing for this resource.
 * Copy SAM tests from another project and edit to do the right thing for this resource.
 * Create an example in `docs-extra/example.yaml` and test it (as above).
+
