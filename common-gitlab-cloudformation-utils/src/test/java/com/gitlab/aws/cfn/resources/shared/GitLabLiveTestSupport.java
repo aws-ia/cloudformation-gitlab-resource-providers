@@ -1,9 +1,12 @@
 package com.gitlab.aws.cfn.resources.shared;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop;
 import com.google.common.base.Strings;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.function.FailableRunnable;
 import org.gitlab4j.api.GitLabApi;
@@ -26,7 +29,8 @@ public class GitLabLiveTestSupport {
     public final static String TEST_PREFIX = "cfn-test";
 
     public final static String GITLAB_ENV_PREFIX = "GITLAB_CFN_TESTS_";
-    public final static String GITLAB_FILE_PREFIX = ".gitlab_cfn_tests" + File.separator;
+    public final static String GITLAB_PROPS_FILE = ".gitlab_cfn_tests";
+    public final static String GITLAB_LEGACY_FILE_PREFIX = GITLAB_PROPS_FILE + File.separator;
 
     public static String getEnvOrFile(String label, String description) {
         String envVar = GITLAB_ENV_PREFIX+label.toUpperCase();
@@ -34,30 +38,51 @@ public class GitLabLiveTestSupport {
         String token = System.getenv(envVar);
         if (!Strings.isNullOrEmpty(token)) return token;
 
-        String fileName = GITLAB_FILE_PREFIX+label.toLowerCase();
+        String path = "";
+        do {
+            File f = new File(path + GITLAB_PROPS_FILE);
+            if (f.exists()) {
+                String canonical = null;
+                try {
+                    canonical = f.getCanonicalPath();
+                } catch (IOException e) {
+                    throw new IllegalStateException("Test requires either env var "+envVar+" or properties file "+GITLAB_PROPS_FILE+" containing "+envVar+"; but path is illegal: "+e, e);
+                }
+                if (f.isDirectory()) {
+                    // legacy syntax
+                    LOG.warn("Detected legacy individual files in folder "+canonical+"; make that be a properties file rather than a folder.");
 
-        // use files, from CWD then HOME
-        File f = new File(fileName);
-        if (f.exists()) {
-            try {
-                token = Files.readAllLines(f.toPath()).stream().collect(Collectors.joining()).trim();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                    File f2 = new File(path + GITLAB_PROPS_FILE + File.separator + label.toLowerCase());
+                    if (f2.exists()) {
+                        try {
+                            token = Files.readAllLines(f2.toPath()).stream().collect(Collectors.joining()).trim();
+                            if (!Strings.isNullOrEmpty(token.toString())) {
+                                return token;
+                            }
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                } else {
+                    // new preferred syntax, properties file
+                    Properties props = new Properties();
+                    try {
+                        props.load(new FileReader(f));
+                    } catch (IOException e) {
+                        throw new IllegalStateException("Test requires either env var "+envVar+" or properties file "+GITLAB_PROPS_FILE+" containing "+envVar+"; but invalid properties in "+canonical+": "+e, e);
+                    }
+                    Object tokenO = props.get(envVar);
+                    if (tokenO!=null && !Strings.isNullOrEmpty(tokenO.toString())) {
+                        return tokenO.toString();
+                    }
+                }
             }
-            if (!Strings.isNullOrEmpty(token)) return token;
-        }
 
-        f = new File(System.getProperty("user.home")+File.separator+fileName);
-        if (f.exists()) {
-            try {
-                token = Files.readAllLines(f.toPath()).stream().collect(Collectors.joining()).trim();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if (path.length()>128) {
+                throw new IllegalStateException("Test requires either env var "+envVar+" or properties file "+GITLAB_PROPS_FILE+" containing "+envVar+" ("+description+")");
             }
-            if (!Strings.isNullOrEmpty(token)) return token;
-        }
-
-        throw new IllegalStateException("Test requires either env var "+envVar+" or file "+fileName+" containing "+description);
+            path = ".." + File.separator + path;
+        } while (true);
     }
 
     public static String getAccessTokenForTests() {

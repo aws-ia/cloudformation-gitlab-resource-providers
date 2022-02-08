@@ -26,13 +26,18 @@ You should then be able to build the project without tests with: `mvn clean inst
 
 This project uses live tests. There isn't much else to test! The live tests require an access token for
 connecting to GitLab and a few other arguments, set in the follow environment variables
-(or in files named similarly, e.g. `~/.gitlab_cfn_tests/access_token`):
+or in a properties file `.gitlab_cfn_tests` in current directory or any ancestor such as your home directory:
 
 ```
-GITLAB_CFN_TESTS_ACCESS_TOKEN=xxxxxxx        # a valid personal access token for gitlab.com
-GITLAB_CFN_TESTS_USER_ID=123                 # numeric user ID corresponding to the above token
-GITLAB_CFN_TESTS_USER_ID_TO_ADD=456          # numeric user ID of a _different_ user
-GITLAB_CFN_TESTS_USERNAME_TO_ADD=bob         # username of this different user
+# a valid personal access token for gitlab.com
+GITLAB_CFN_TESTS_ACCESS_TOKEN=xxxxx-a1b2c3secret
+
+# numeric user ID corresponding to the above token
+GITLAB_CFN_TESTS_USER_ID=123
+
+# numeric user ID and username of a _different_ user
+GITLAB_CFN_TESTS_USER_ID_TO_ADD=456
+GITLAB_CFN_TESTS_USERNAME_TO_ADD=Bob
 ```
 
 With the above set, `mvn clean install` should work.
@@ -40,6 +45,7 @@ With the above set, `mvn clean install` should work.
 The tests create projects and groups, but will typically clean up after themselves.
 If they do not (e.g. because they are interrupted) the tool `GitLabCleanup.java` can be used to find and delete test resources.
 (They are also easy to spot at GitLab as they all have the prefix "cfn-test".) 
+
 
 ### Serverless Tests
 
