@@ -49,8 +49,75 @@ If they do not (e.g. because they are interrupted) the tool `GitLabCleanup.java`
 
 ### Serverless Tests
 
-TODO
+On top of the live test, AWS offers capabilities of testing resources locally using SAM (Serverless Application Model).
+There are two components involved: `SAM template specification` (which provides you with a simple and clean syntax to describe the functions, APIs, permissions, configurations, and events that make up a serverless application) and `SAM CLI`.
+It is also required to have docker installed and running on your machine, as it is required for testing locally (AWS SAM provides a local environment similar to Lambda to use as Docker container).
 
+In order to install `AWS SAM CLI`, use the following command:
+```
+brew tap aws/tap
+brew install aws-sam-cli
+```
+Verify the installation:
+```
+sam --version
+```
+
+#### Local Testing with provided data
+In order to carry out local testing, we need to create a test data file for each handler developed for the resource.
+For example, in the root of the resource project we can create a file `./sam-tests/create.json` with the following content:
+```
+{
+    "credentials": {
+        # Real STS credentials need to go here.
+        "accessKeyId": "",
+        "secretAccessKey": "",
+        "sessionToken": ""
+    },
+    "action": "CREATE",
+    "request": {
+        "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe", # Can be any UUID.
+        "desiredResourceState": {
+            "Name": "test" #specify properties required as per resource schema
+        },
+        "logicalResourceIdentifier": "TestResource"
+    },
+    "callbackContext": null
+}
+```
+The test can then be invoked using the CLI:
+```
+sam local invoke TestEntrypoint --event sam-tests/create.json
+```
+
+#### Testing with generated data
+Specify type configuration in `~/.cfn-cli/typeConfiguration.json`:
+```
+{
+  "gitLabAccess": {
+    "accessToken": "xxx"
+  }
+}
+```
+
+Run lambda tests:
+```
+sam local start-lambda
+```
+another terminal window
+```
+cfn test
+```
+
+Test with Overrides:
+`overrides.json`
+```
+{
+  "CREATE": {
+    "/Name": "sampleproject"
+  }
+}
+```
 
 ## Registering Types and Running Examples
 
