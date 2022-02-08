@@ -15,7 +15,7 @@ public class GitLabCleanup {
     public static void main(String[] args) throws GitLabApiException {
         LOG.info("Cleaning up GitLab test resources...");
 
-        int MAX = 10;
+        int MAX = 50;
 
         // clean up
         GitLabApi gitlab = new GitLabApi("https://gitlab.com", GitLabLiveTestSupport.getAccessTokenForTests());
@@ -25,7 +25,8 @@ public class GitLabCleanup {
         while (!groups.isEmpty()) {
             Group x = groups.remove(0);
             if (x.getName().startsWith(GitLabLiveTestSupport.TEST_PREFIX)) {
-                LOG.info("Deleting leaked test item: "+x.getName()+" "+x);
+                LOG.info("Deleting leaked test item: "+x.getName());
+                LOG.debug("Details of leaked test item: "+x.getName()+": "+x);
                 try {
                     gitlab.getGroupApi().deleteGroup(x.getId());
                 } catch (Exception e) {
@@ -42,7 +43,8 @@ public class GitLabCleanup {
 
         for (Project x : gitlab.getProjectApi().getOwnedProjects(MAX).current()) {
             if (x.getName().startsWith(GitLabLiveTestSupport.TEST_PREFIX)) {
-                LOG.info("Deleting leaked test item: "+x.getName()+" "+x);
+                LOG.info("Deleting leaked test item: "+x.getName());
+                LOG.debug("Details of leaked test item: "+x.getName()+": "+x);
                 gitlab.getProjectApi().deleteProject(x.getId());
             }
         }
