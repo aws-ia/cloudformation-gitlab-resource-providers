@@ -222,6 +222,16 @@ for x in GitLab-* ; do
 done
 ```
 
+To inspect the current values:
+
+```
+for x in GitLab-* ; do
+  TYPE=$(echo $x | sed s/-/::/g)
+  aws --output yaml --no-cli-pager cloudformation batch-describe-type-configurations \
+    --type-configuration-identifiers Type=RESOURCE,TypeName=$TYPE
+
+done
+```
 
 ### Running Examples
 
