@@ -46,6 +46,7 @@ public class UserMemberOfProjectResourceHandler extends AbstractGitlabCombinedRe
 
         @Override
         public Pair<Integer, Integer> getId(ResourceModel model) {
+            updateModelUserFields(false);
             return GitLabUtils.pair(model.getProjectId(), model.getUserId());
         }
 
