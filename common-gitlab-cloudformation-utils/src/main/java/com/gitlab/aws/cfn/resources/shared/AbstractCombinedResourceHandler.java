@@ -1,5 +1,7 @@
 package com.gitlab.aws.cfn.resources.shared;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,6 +63,7 @@ public abstract class AbstractCombinedResourceHandler<
             // only available when run locally
             LOG.error("Error in request init: "+e);
             LOG.debug("Trace for error: "+e, e);
+            logger.log("Error in request init: "+toStackTrace(e));
 
             if (e instanceof FailureToSetInResult) {
                 result = (ProgressEvent<ResourceModelT, CallbackContextT>) ((FailureToSetInResult)e).getResult();
@@ -73,6 +76,13 @@ public abstract class AbstractCombinedResourceHandler<
     }
 
     public ResourceModelT getModel() { return model; }
+
+    protected static String toStackTrace(Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+        return sw.toString();
+    }
 
     private final Map<String,Supplier<ProgressEvent<ResourceModelT, CallbackContextT>>> actionClazzNames = new LinkedHashMap<>();
     {
@@ -98,6 +108,7 @@ public abstract class AbstractCombinedResourceHandler<
             // only available when run locally
             LOG.warn("Error in request: "+e);
             LOG.debug("Trace for error: "+e, e);
+            logger.log("Error in request: "+toStackTrace(e));
 
             if (e instanceof FailureToSetInResult) {
                 result = (ProgressEvent<ResourceModelT, CallbackContextT>) ((FailureToSetInResult)e).getResult();
