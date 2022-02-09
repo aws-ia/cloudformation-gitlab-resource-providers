@@ -1,0 +1,97 @@
+{
+    "typeName": "GitLab::Code::Tag",
+    "description": "Creates a tag against a code ref in GitLab",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "GitLabAccess": {
+            "type": "object",
+            "properties": {
+                "Url": {
+                    "description": "URL of the GitLab Server",
+                    "type": "string"
+                },
+                "AccessToken": {
+                    "description": "Access Token",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "AccessToken"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "Name": {
+            "description": "The name of the tag to create",
+            "type": "string",
+            "maxLength": 64
+        },
+        "ProjectId": {
+            "description": "The ID of the project which will be tagged",
+            "type": "integer"
+        },
+        "Ref": {
+            "description": "The reference to the code commit to tag, either a commit SHA or a branch name (to use the commit which is currently head of that branch)",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Message": {
+            "description": "A message to attach to the tag",
+            "type": "string"
+        },
+        "TagId": {
+            "description": "A CloudFormation ID to identify this tag",
+            "type": "string"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Name",
+        "ProjectId",
+        "Ref"
+    ],
+    "primaryIdentifier": [
+        "/properties/TagId"
+    ],
+    "readOnlyProperties": [
+        "/properties/TagId"
+    ],
+    "createOnlyProperties": [
+        "/properties/Name",
+        "/properties/ProjectId"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+            ]
+        },
+        "read": {
+            "permissions": [
+            ]
+        },
+        "update": {
+            "permissions": [
+            ]
+        },
+        "delete": {
+            "permissions": [
+            ]
+        },
+        "list": {
+            "permissions": [
+            ]
+        }
+    },
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAccess": {
+                "$ref": "#/definitions/GitLabAccess"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAccess"
+        ]
+    }
+}
