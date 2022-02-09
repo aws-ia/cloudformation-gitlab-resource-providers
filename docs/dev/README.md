@@ -169,8 +169,7 @@ And register them, either individually:
 
 ```
 cd GitLab-$XXX-$YYY
-cfn submit
-# aws cloudformation set-type-default-version ...    # required if previously installed
+cfn submit --set-default
 ```
 
 Or looping through all of them (optionally include the `set-type-configuration` command from above in the loop,
@@ -181,11 +180,7 @@ for x in GitLab-* ; do
   cd $x
   TYPE=$(echo $x | sed s/-/::/g)
   echo Registering $TYPE...
-  cfn submit
-  VERSION=$(aws --output yaml --no-cli-pager cloudformation list-type-versions --type RESOURCE --type-name $TYPE | \
-    grep 'Arn: arn:' | sort | tail -1 | sed 's/.*\///')
-  echo Using version $VERSION of $TYPE
-  aws cloudformation set-type-default-version --type RESOURCE --type-name $TYPE --version-id $VERSION 
+  cfn submit --set-default
   cd ..
 done
 ```
