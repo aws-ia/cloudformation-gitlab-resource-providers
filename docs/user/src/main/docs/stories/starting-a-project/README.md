@@ -1,14 +1,22 @@
 # Setting up a new project with correct users and groups
 
 The following CloudFormation GitLab resource types allow creating projects and control users and groups of users who should be able to access them.
-This allows kicking off new projects and managing users responsible for the project simply and efficiently.
+This allows kicking off new projects and managing users with access to the project,
+simply, efficiently, and consistently.
 
-We will use the following types:
+Project build pipelines and other project-bootstrap infrastructure can also be included
+as part of the CFN, so organizations can have a quick and common way to bootstrap a new project.
+
+This demo will use the following types:
+
 * `GitLab::Projects::Project` - to create and manage projects in GitLab
 * `GitLab::Groups::Group` - to create and manage groups
 * `GitLab::Groups::UserMemberOfGroup` - to specify particular members for created groups
 * `GitLab::Projects::UserMemberOfProject` - to control which users can access particular projects
 * `GitLab::Projects::GroupAccessToProject` - to control access of groups to a project
+* `GitLab::Projects::AccessToken` - to create project-specific access tokens for use in pipelines
+
+### Parent Group
 
 Typically GitLab requires that one group already exist, and new groups will be added to it. Find or create a parent group to use in the GitLab UI, and make a note of its numeric ID. This will be the parameter `ParentGroupId`:
 ```
@@ -19,46 +27,52 @@ Parameters:
     Description: Enter the ID of an existing group, e.g. for a "sample-company", where new groups will be created
 ```
 
-We can now define the set of projects required. Imagine our project consists of a separate front-end and back-end projects, which we can define as follows:
+### Create Projects
+
+We can now define the set of projects required. Imagine our "Acme" project consists of a separate front-end and back-end projects, which we can define as follows:
 ```
   FrontEnd:
     Type: GitLab::Projects::Project
     Properties:
-      Name: FrontEndProject
+      Name: AcmeProject-FrontEnd
   BackEnd:
     Type: GitLab::Projects::Project
     Properties:
-      Name: BackEndProject
+      Name: AcmeProject-BackEnd
 ```
+
+### Create Groups of Users
 
 We can then create groups of users with particular roles, here we will define groups: `ProjectManagers`, `FrontEndDevelopers` and `BackEndDevelopers`.
 We also create a group `ProjectX` as a parent group to the ones specified above:
 ```
-  ProjectX:
+  ProjectGroups:
     Type: GitLab::Groups::Group
     Properties:
-      Name: ProjectX
+      Name: AcmeProject-AllGroups
       ParentId: { Ref: ParentGroupId }
-      Path: path-to-project-x
+      Path: acme-project-groups
   ProjectManagers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: ProjectManagers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-project-managers
+      Name: AcmeProject-ProjectManagers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-project-managers
   FrontEndDevelopers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: FrontEndDevelopers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-frontend-developers
+      Name: AcmeProject-FrontEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-frontend-developers
   BackEndDevelopers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: BackEndDevelopers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-backend-developers
+      Name: AcmeProject-BackEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-backend-developers
 ```
+
+### Assign Users to Groups and Projects
 
 We can now add users to the groups created.
 Note that we have admins, front and back end developers, but we also have a full stack developer who belongs to both front and back end groups:
@@ -136,7 +150,10 @@ We can add users to a project directly as follows:
       AccessLevel: Developer
 ```
 
-As a result, we have a structure of our `ProjectX`, with 2 projects created:
+
+### Conclusion
+
+As a result, we have a structure of our `AcmeProject`, with 2 projects created:
 ![Projects](projects.png)
 
 Our `FrontEnd` project has the developer added directly to project:
