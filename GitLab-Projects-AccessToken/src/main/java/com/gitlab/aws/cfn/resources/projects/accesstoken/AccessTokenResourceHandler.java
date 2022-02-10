@@ -76,6 +76,7 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
             m.setName(item.getName());
             m.setProjectId(model.getProjectId());
             m.setScopes(item.getScopes());
+            m.setAccessLevel(model.getAccessLevel());
             return m;
         }
 
@@ -84,11 +85,12 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
             AccessToken AccessToken = new AccessToken()
                     .withName(model.getName())
                     .withScopes(model.getScopes())
+                    .withAccessLevel(model.getAccessLevel())
                     .withCreatedAt(Date.from(Instant.now())) // defaults for now
                     .withExpiresAt(Date.from(Instant.now().plus(30, ChronoUnit.DAYS))) // defaults for now
                     .withAccessLevel(30) // defaults for now
                     ;
-            return postAccessToken(gitlab, model.getProjectId(), AccessToken);
+            return postAccessToken(gitlab, model.getProjectId(), AccessToken); //this will have its 'token' property set.
         }
 
         @Override
