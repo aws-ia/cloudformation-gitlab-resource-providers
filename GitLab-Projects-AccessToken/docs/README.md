@@ -1,4 +1,4 @@
-# GitLab::Project::AccessToken
+# GitLab::Projects::AccessToken
 
 Creates a Project Access Token in GitLab
 
@@ -10,7 +10,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 <pre>
 {
-    "Type" : "GitLab::Project::AccessToken",
+    "Type" : "GitLab::Projects::AccessToken",
     "Properties" : {
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
         "<a href="#projectid" title="ProjectId">ProjectId</a>" : <i>Integer</i>,
@@ -22,7 +22,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 ### YAML
 
 <pre>
-Type: GitLab::Project::AccessToken
+Type: GitLab::Projects::AccessToken
 Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
     <a href="#projectid" title="ProjectId">ProjectId</a>: <i>Integer</i>

@@ -1,6 +1,6 @@
 {
     "artifact_type": "RESOURCE",
-    "typeName": "GitLab::Project::AccessToken",
+    "typeName": "GitLab::Projects::AccessToken",
     "language": "java",
     "runtime": "java8",
     "entrypoint": "com.gitlab.aws.cfn.resources.projects.accesstoken.HandlerWrapper::handleRequest",

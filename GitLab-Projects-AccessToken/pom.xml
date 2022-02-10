@@ -55,11 +55,11 @@
                 <artifactId>build-helper-maven-plugin</artifactId>
             </plugin>
 
-            <!-- enable code coverage -->
-            <plugin>
+            <!-- disable until we have a paid account -->
+           <!-- <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 
