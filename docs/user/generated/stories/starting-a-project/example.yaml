@@ -1,0 +1,109 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Creates GitLab structure for a new project kick off, including projects, groups and users
+
+Parameters:
+  ParentGroupId:
+    Type: Number
+    Default: 15776179
+    Description: Enter the ID of an existing group, e.g. for a "sample-company", where new groups will be created
+
+Resources:
+  FrontEnd:
+    Type: GitLab::Projects::Project
+    Properties:
+      Name: AcmeProject-FrontEnd
+  BackEnd:
+    Type: GitLab::Projects::Project
+    Properties:
+      Name: AcmeProject-BackEnd
+
+  ProjectGroups:
+    Type: GitLab::Groups::Group
+    Properties:
+      Name: AcmeProject-AllGroups
+      ParentId: { Ref: ParentGroupId }
+      Path: acme-project-groups
+  ProjectManagers:
+    Type: GitLab::Groups::Group
+    Properties:
+      Name: AcmeProject-ProjectManagers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-project-managers
+  FrontEndDevelopers:
+    Type: GitLab::Groups::Group
+    Properties:
+      Name: AcmeProject-FrontEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-frontend-developers
+  BackEndDevelopers:
+    Type: GitLab::Groups::Group
+    Properties:
+      Name: AcmeProject-BackEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-backend-developers
+
+
+  ProjectManagerMemberOfGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: ProjectManagers }
+      Username: cloudsoft_admin_geralt
+      AccessLevel: Maintainer
+  FrontEndDeveloperMemberOfGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: FrontEndDevelopers }
+      Username: cloudsoft_developer_ciri
+      AccessLevel: Developer
+  BackEndDeveloperMemberOfGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: BackEndDevelopers }
+      Username: cloudsoft_developer_jaskier
+      AccessLevel: Developer
+  FullStackDeveloperMemberOfFrontEndGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: { Ref: FrontEndDevelopers }
+      Username: cloudsoft_developer_yennefer
+      AccessLevel: Developer
+  FullStackDeveloperMemberOfBackEndGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: { Ref: BackEndDevelopers }
+      Username: cloudsoft_developer_yennefer
+      AccessLevel: Developer
+
+  ManagersInFrontEndProject:
+    Type: GitLab::Projects::GroupAccessToProject
+    Properties:
+      ProjectId: { Ref: FrontEnd }
+      GroupId: { Ref: ProjectManagers }
+      AccessLevel: Maintainer
+  ManagersInBackEndProject:
+    Type: GitLab::Projects::GroupAccessToProject
+    Properties:
+      ProjectId: { Ref: BackEnd }
+      GroupId: { Ref: ProjectManagers }
+      AccessLevel: Maintainer
+  DevelopersInFrontEndProject:
+    Type: GitLab::Projects::GroupAccessToProject
+    Properties:
+      ProjectId: {Ref: FrontEnd }
+      GroupId: {Ref: FrontEndDevelopers}
+      AccessLevel: Developer
+  DevelopersInBackEndProject:
+    Type: GitLab::Projects::GroupAccessToProject
+    Properties:
+      ProjectId: { Ref: BackEnd }
+      GroupId: { Ref: BackEndDevelopers }
+      AccessLevel: Developer
+
+  DeveloperVesemirInFrontEndProject:
+    Type: GitLab::Projects::UserMemberOfProject
+    Properties:
+      ProjectId: { Ref: FrontEnd }
+      Username: cloudsoft_developer_vesemir
+      AccessLevel: Developer

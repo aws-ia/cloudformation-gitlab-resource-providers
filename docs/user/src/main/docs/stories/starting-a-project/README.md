@@ -150,6 +150,31 @@ We can add users to a project directly as follows:
       AccessLevel: Developer
 ```
 
+### Creating a Project Access Token
+
+Imagine our standard project-onboarding CFN also sets up a build pipeline.
+A common requirement is to provide an access token to that build pipeline.
+Often there is a shared "cicd" access token used for this purpose,
+due to the overhead of maintaining project-specific access tokens.
+This violates the principle of least privilege, however, and with automation
+it is straightforward to create and inject a project-specific access token.
+
+For example we could add:
+
+```
+  AccessTokenForFrontEndProject:
+    Type: GitLab::Projects::AccessToken
+    Properties:
+      Name: AcmeProject-PipelineAccess
+      ProjectId: { Ref: FrontEnd }
+      AccessLevel: Reporter
+```
+
+And then reference this with `{Ref: AccessTokenForFrontEndProject}`.
+
+***Note: Project Access Tokens are only available with some (e.g. paid) GitLab
+subscriptions, and must be enabled for the user and/or group.***
+
 
 ### Conclusion
 
