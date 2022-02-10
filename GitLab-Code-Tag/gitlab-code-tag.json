@@ -32,9 +32,13 @@
             "type": "integer"
         },
         "Ref": {
-            "description": "The reference to the code commit to tag, either a commit SHA or a branch name (to use the commit which is currently head of that branch)",
+            "description": "The reference to the code commit to be tagged, either a commit SHA ID or a branch name (to use the commit which is head of that branch at time of tag creation)",
             "type": "string",
             "maxLength": 64
+        },
+        "CommitId": {
+            "description": "The actual commit SHA ID referenced by this tag, set by the resource provider. This will be equal to Ref if Ref is a commit SHA ID, or set by the provider to point at the commit if Ref is a branch name.",
+            "type": "string"
         },
         "Message": {
             "description": "A message to attach to the tag",
@@ -55,11 +59,13 @@
         "/properties/TagId"
     ],
     "readOnlyProperties": [
-        "/properties/TagId"
+        "/properties/TagId",
+        "/properties/CommitId"
     ],
     "createOnlyProperties": [
         "/properties/Name",
-        "/properties/ProjectId"
+        "/properties/ProjectId",
+        "/properties/Ref"
     ],
     "handlers": {
         "create": {

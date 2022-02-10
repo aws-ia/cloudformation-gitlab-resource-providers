@@ -63,6 +63,8 @@ public class TagCrudlLiveTest extends AbstractResourceCrudlLiveTest<TagResourceH
         // before commits, tag should point at head of branch
         Tag tag0 = getRealItem();
         assertThat(tag0.getCommit().getId()).isEqualTo(initialCommit.getId());
+        assertThat(model.getRef()).isEqualTo("main");
+        assertThat(model.getCommitId()).isEqualTo(tag0.getCommit().getId());
 
         CommitAction commitAction2 = new CommitAction()
                 .withAction(Action.CREATE)
@@ -81,14 +83,17 @@ public class TagCrudlLiveTest extends AbstractResourceCrudlLiveTest<TagResourceH
         assertThat(tag1.getCommit().getId()).isEqualTo(initialCommit.getId());
 
         model.setMessage("Tag updated to point directly at commit 2");
-        model.setRef(commit2.getId());
+        if (TagResourceHandler.ALLOW_REF_UPDATES) {
+            model.setRef(commit2.getId());
+        }
         ProgressEvent<ResourceModel, CallbackContext> response = new UpdateHandler().handleRequest(proxy, newRequestObject(), null, logger, typeConfiguration);
 
         assertThat(response).isNotNull();
         assertStatusSuccess(response);
 
         Tag tag2 = getRealItem();
-        assertThat(tag2.getCommit().getId()).isEqualTo(commit2.getId());
+        assertThat(tag2.getCommit().getId()).isEqualTo(
+            TagResourceHandler.ALLOW_REF_UPDATES ? commit2.getId() : initialCommit.getId());
     }
 
 }

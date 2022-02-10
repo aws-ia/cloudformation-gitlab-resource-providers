@@ -1,0 +1,11 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to create a tag against a code ref (branch or commit) in GitLab
+Resources:
+  MySampleProject:
+    Type: GitLab::Code::Tag
+    Properties:
+      Name: my-tag
+      ProjectId: 123
+      Ref: main
+      Message: This is a sample tag
