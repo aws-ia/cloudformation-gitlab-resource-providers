@@ -20,6 +20,7 @@
         <module>GitLab-Projects-Project</module>
         <module>GitLab-Projects-GroupAccessToProject</module>
         <module>GitLab-Projects-UserMemberOfProject</module>
+        <module>GitLab-Projects-AccessToken</module>
         <module>GitLab-Code-Tag</module>
         <module>docs/user</module>
     </modules>

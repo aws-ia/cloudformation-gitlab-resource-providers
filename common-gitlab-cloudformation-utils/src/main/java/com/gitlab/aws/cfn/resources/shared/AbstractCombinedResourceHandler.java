@@ -54,6 +54,7 @@ public abstract class AbstractCombinedResourceHandler<
         this.callbackContext = callbackContext;
         this.logger = logger;
         this.typeConfiguration = typeConfiguration;
+        // TODO should be more careful between "previous" and "desired"
         this.model = request.getDesiredResourceState();
 
         try {
