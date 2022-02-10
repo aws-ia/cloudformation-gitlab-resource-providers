@@ -10,13 +10,13 @@ Here are some sample use cases this supports:
 
 * [Manage the users and groups in my organization](stories/org-group-user-management/)
 * [Set up a new project with the right users, groups, and access token](stories/starting-a-project/)
-* TODO - others = tag a project as part of a CI pipeline~~~~
+* [Tag a project automatically for every active CI/CD deployment](stories/TODO)
 
 ### How do I get started?
 
 In the AWS CloudFormation UI, find the GitLab types in the third-party registry and activate them.
 Alternatively follow the [Developer](../dev) instructions to install them manually.
-~~~~
+
 You will need to set up a [Type Configuration](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/set-type-configuration.html)
 for each of the activated types, containing a GitLab **Access Token**.
 It is recommended to set the access token into Systems Manager's secure parameter store,
