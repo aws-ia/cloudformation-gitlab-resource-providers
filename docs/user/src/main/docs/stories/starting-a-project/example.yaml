@@ -13,36 +13,36 @@ Resources:
   FrontEnd:
     Type: GitLab::Projects::Project
     Properties:
-      Name: FrontEndProject
+      Name: AcmeProject-FrontEnd
   BackEnd:
     Type: GitLab::Projects::Project
     Properties:
-      Name: BackEndProject
+      Name: AcmeProject-BackEnd
 
-  ProjectX:
+  ProjectGroups:
     Type: GitLab::Groups::Group
     Properties:
-      Name: ProjectX
+      Name: AcmeProject-AllGroups
       ParentId: { Ref: ParentGroupId }
-      Path: path-to-project-x
+      Path: acme-project-groups
   ProjectManagers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: ProjectManagers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-project-managers
+      Name: AcmeProject-ProjectManagers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-project-managers
   FrontEndDevelopers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: FrontEndDevelopers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-frontend-developers
+      Name: AcmeProject-FrontEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-frontend-developers
   BackEndDevelopers:
     Type: GitLab::Groups::Group
     Properties:
-      Name: BackEndDevelopers
-      ParentId: { Ref: ProjectX }
-      Path: path-to-backend-developers
+      Name: AcmeProject-BackEndDevelopers
+      ParentId: { Ref: ProjectGroups }
+      Path: acme-project-backend-developers
 
 
   ProjectManagerMemberOfGroup:
