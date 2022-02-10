@@ -8,4 +8,4 @@ See the [end-user documentation](docs/user/generated/) including:
 * [supported GitLab resource types](docs/user/generated/resources/)
 
 There is also [developer documentation](docs/dev) available
-in you are interesting in building or contributing.
+in you are interested in building or contributing.

@@ -137,15 +137,15 @@ We can add users to a project directly as follows:
 ```
 
 As a result, we have a structure of our `ProjectX`, with 2 projects created:
-<image of projects>
+![Projects](projects.png)
 
 Our `FrontEnd` project has the developer added directly to project:
-<image of front end members>
+![Front End Project Members](project_members.png)
 
 Also each of the projects has 2 groups added: `ProjectManagers` and `Front/BackEndDevelopers` respectively.
-<image of groups>
+![Front End Project Groups](project_groups.png)
 
-In terms of groups, we have our parent `ProjectX` group with the subgroups as specified above:
-<image of ProjectX group>
+In terms of groups, we have our parent `ProjectX` group wigit th the subgroups as specified above:
+![Main Group with Subgroups](subgroups.png)
 
-Each subgroup will have users as specified above.
+Each subgroup will have the relevant users (`Developers` and `Maintainer`) present as members.
