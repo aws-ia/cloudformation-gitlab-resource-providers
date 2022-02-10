@@ -10,7 +10,7 @@ Here are some sample use cases this supports:
 
 * [Manage the users and groups in my organization](stories/org-group-user-management/)
 * [Set up a new project with the right users, groups, and access token](stories/starting-a-project/)
-* [Tag a project automatically for every active CI/CD deployment](stories/TODO)
+* [Tag a project automatically for every active CI/CD deployment](stories/using-tags-in-build-pipeline/)
 
 ### How do I get started?
 

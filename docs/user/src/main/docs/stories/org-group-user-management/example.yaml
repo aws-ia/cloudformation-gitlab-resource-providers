@@ -6,7 +6,7 @@ Description: Manages an organizaton's standard groups and users within GitLab
 Parameters:
   ParentGroupId:
     Type: Number
-    Default: 16057033
+    Default: 16090842
     Description: Enter the ID of an existing group, e.g. for a "sample-company", where new groups will be created
 
 Resources:
