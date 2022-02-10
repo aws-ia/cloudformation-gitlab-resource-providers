@@ -19,7 +19,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHandler<AccessTokenResourceHandler, AccessToken, Pair<Integer,Integer>, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
@@ -54,7 +57,7 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
 
         @Override
         public Optional<AccessToken> findExistingItemWithNonNullId(Pair<Integer,Integer> id) throws Exception {
-           throw new NotSupportedException("A token cannot be retrieved!");
+            return findExistingItemWithIdDefaultInefficiently(id);
         }
 
         @Override
@@ -91,14 +94,14 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
 
         @Override
         public void updateItem(AccessToken existingItem, List<String> updates) throws GitLabApiException {
-            throw new NotSupportedException("A token cannot be updated!");
+           // no-op CFN should prevent any fields from being updated - access token update is not supported
         }
     }
 
-    public static AccessToken postAccessToken(GitLabApi gitlab, Integer projectId, AccessToken AccessToken) throws GitLabApiException {
+    public static AccessToken postAccessToken(GitLabApi gitlab, Integer projectId, AccessToken accessToken) throws GitLabApiException {
         return new AbstractApi(gitlab) {
             public AccessToken postAccessToken() throws GitLabApiException {
-                Response r = post(Response.Status.CREATED, AccessToken, "projects", projectId, "access_tokens");
+                Response r = post(Response.Status.CREATED, accessToken, "projects", projectId, "access_tokens");
                 return r.readEntity(AccessToken.class);
             }
         }.postAccessToken();
@@ -108,8 +111,8 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
         return new AbstractApi(gitlab) {
             public List<AccessToken> getAccessTokens() throws GitLabApiException {
                 Response r = get(Response.Status.OK, null, "projects", projectId, "access_tokens");
-                List<AccessToken> AccessTokens = r.readEntity(List.class);  // TODO check this
-                return AccessTokens;
+                List<?> accessTokensRaw = r.readEntity(List.class);
+                return ((List<Map<?,?>>)accessTokensRaw).stream().map(AccessToken::of).collect(Collectors.toList());
             }
         }.getAccessTokens();
     }
