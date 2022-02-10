@@ -14,6 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#name" title="Name">Name</a>" : <i>String</i>,
         "<a href="#projectid" title="ProjectId">ProjectId</a>" : <i>Integer</i>,
+        "<a href="#accesslevel" title="AccessLevel">AccessLevel</a>" : <i>Integer</i>,
         "<a href="#scopes" title="Scopes">Scopes</a>" : <i>[ String, ... ]</i>,
     }
 }
@@ -26,6 +27,7 @@ Type: GitLab::Projects::AccessToken
 Properties:
     <a href="#name" title="Name">Name</a>: <i>String</i>
     <a href="#projectid" title="ProjectId">ProjectId</a>: <i>Integer</i>
+    <a href="#accesslevel" title="AccessLevel">AccessLevel</a>: <i>Integer</i>
     <a href="#scopes" title="Scopes">Scopes</a>: <i>
       - String</i>
 </pre>
@@ -53,6 +55,16 @@ _Required_: Yes
 _Type_: Integer
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### AccessLevel
+
+A valid access level. Default value is 40 (Maintainer). Other allowed values are 10 (Guest), 20 (Reporter), and 30 (Developer).
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Scopes
 

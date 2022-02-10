@@ -167,11 +167,8 @@ For example we could add:
     Properties:
       Name: AcmeProject-PipelineAccess
       ProjectId: { Ref: FrontEnd }
-      Scopes: [ list_of_scopes ]
       AccessLevel: Reporter
 ```
-
-Scopes is an array containing any of `{"api", "read_api","read_registry", "write_registry", "read_repository", write_repository"}`.
 
 And then reference this with `{Ref: AccessTokenForFrontEndProject}`.
 
