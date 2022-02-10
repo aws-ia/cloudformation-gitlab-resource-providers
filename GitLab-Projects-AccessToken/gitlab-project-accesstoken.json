@@ -1,0 +1,97 @@
+{
+    "typeName": "GitLab::Projects::AccessToken",
+    "description": "Creates a Project Access Token in GitLab",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {
+        "GitLabAccess": {
+            "type": "object",
+            "properties": {
+                "Url": {
+                    "description": "URL of the GitLab Server",
+                    "type": "string"
+                },
+                "AccessToken": {
+                    "description": "Access Token",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "AccessToken"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "Name": {
+            "description": "The name of the Project Access Token to create.",
+            "type": "string",
+            "maxLength": 64
+        },
+        "ProjectId": {
+            "description": "The ID of the project which will be tagged",
+            "type": "integer"
+        },
+        "Scopes": {
+            "description": "The scopes this Project Access Token will be used for.",
+            "type": "array",
+            "insertionOrder": true,
+            "items": {
+                "type": "string"
+            }
+        },
+        "Id": {
+            "description": "The ID of the Project Access Token",
+            "type": "integer"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Name",
+        "ProjectId",
+        "Scopes"
+    ],
+    "primaryIdentifier": [
+        "/properties/Id"
+    ],
+    "readOnlyProperties": [
+        "/properties/Id"
+    ],
+    "createOnlyProperties": [
+        "/properties/ProjectId",
+        "/properties/Name",
+        "/properties/Scopes"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+            ]
+        },
+        "read": {
+            "permissions": [
+            ]
+        },
+        "update": {
+            "permissions": [
+            ]
+        },
+        "delete": {
+            "permissions": [
+            ]
+        },
+        "list": {
+            "permissions": [
+            ]
+        }
+    },
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAccess": {
+                "$ref": "#/definitions/GitLabAccess"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAccess"
+        ]
+    }
+}
