@@ -54,9 +54,13 @@
         }
     },
     "additionalProperties": false,
-    "required": [
-        "ProjectId",
-        "AccessLevel"
+    "allOf": [
+        {"required":  ["ProjectId" , "AccessLevel"]}  ,
+        {"oneOf":  [
+                {"required" : ["Username"]},
+                {"required": ["UserId" ]}
+            ]
+        }
     ],
     "readOnlyProperties": [
         "/properties/MembershipId"
