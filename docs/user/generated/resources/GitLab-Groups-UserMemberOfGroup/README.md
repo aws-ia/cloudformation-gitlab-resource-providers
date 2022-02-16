@@ -37,7 +37,7 @@ Properties:
 
 ID of the group to which the user should be added
 
-_Required_: Yes
+_Required_: No
 
 _Type_: Integer
 
@@ -67,7 +67,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 The access level to grant to this user in the group, e.g. 'Guest', 'Developer', or 'Maintainer'. Note the GitLab API may not allow all values.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: String
 

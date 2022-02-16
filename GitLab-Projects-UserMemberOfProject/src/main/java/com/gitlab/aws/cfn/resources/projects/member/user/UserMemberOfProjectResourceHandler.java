@@ -108,7 +108,7 @@ public class UserMemberOfProjectResourceHandler extends AbstractGitlabCombinedRe
         String modelUsername = model.getUsername();
         if (modelUsername!=null && modelUsername.startsWith("@")) modelUsername = modelUsername.substring(1);
 
-        if (model.getUserId()==null) {
+        if (model.getUserId() == null) {
             if (modelUsername!=null) {
                 Optional<User> user = gitlab.getUserApi().getOptionalUser(modelUsername);
                 if (!user.isPresent()) {
