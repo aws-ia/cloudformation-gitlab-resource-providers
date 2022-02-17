@@ -54,13 +54,10 @@
         }
     },
     "additionalProperties": false,
-    "allOf": [
-        {"required":  ["GroupId" , "AccessLevel"]}  ,
-        {"oneOf":  [
+    "required":  ["GroupId" , "AccessLevel"]  ,
+    "oneOf":  [
                 {"required" : [ "Username"]},
                 {"required": ["UserId" ]}
-            ]
-        }
     ],
     "readOnlyProperties": [
         "/properties/MembershipId"
