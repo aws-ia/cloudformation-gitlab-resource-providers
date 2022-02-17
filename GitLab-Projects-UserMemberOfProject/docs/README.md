@@ -37,7 +37,7 @@ Properties:
 
 ID of the project to which the user should be added
 
-_Required_: No
+_Required_: Yes
 
 _Type_: Integer
 
@@ -67,7 +67,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 The access level to grant to this user on the project, e.g. 'Guest', 'Developer', or 'Maintainer'. Note the GitLab API may not allow all values.
 
-_Required_: No
+_Required_: Yes
 
 _Type_: String
 
