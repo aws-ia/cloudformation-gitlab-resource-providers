@@ -56,6 +56,23 @@ public abstract class AbstractCombinedResourceHandler<
         this.typeConfiguration = typeConfiguration;
         // TODO should be more careful between "previous" and "desired"
         this.model = request.getDesiredResourceState();
+        // TODO need to capture -- request.getPreviousResourceState() -- and use it in places?  e.g. merge them
+        /*
+        eg:
+
+          when creating ProjectToken
+
+            we set the ApiToken into the state
+
+          on a subsequent update from the user
+
+            ApiToken will be in PreviousState but probably not in DesiredState
+            should it be in the result?
+
+          is this also a problem with fields like ID?
+          (masked by the fact that we regenerate)
+         */
+
 
         try {
             doInit();
