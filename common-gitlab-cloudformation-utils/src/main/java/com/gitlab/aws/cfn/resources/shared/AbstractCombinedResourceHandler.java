@@ -180,42 +180,67 @@ public abstract class AbstractCombinedResourceHandler<
         public abstract void deleteItem(ItemT item) throws Exception;
 
         public void create() throws Exception {
-            Optional<ItemT> item = findExistingItemMatchingModel();
-            if (item.isPresent()) fail(HandlerErrorCode.AlreadyExists, "Resource already exists.");
-            model = modelFromItem(createItem());
+            try {
+                Optional<ItemT> item = findExistingItemMatchingModel();
+                if (item.isPresent()) fail(HandlerErrorCode.AlreadyExists, "Resource already exists.");
+                model = modelFromItem(createItem());
+            } catch (Exception e) {
+                logger.log("Exception caught creating model, rethrowing. " + e);
+                throw e;
+            }
         }
 
         public void read() throws Exception {
-            Optional<ItemT> item = findExistingItemMatchingModel();
-            if (!item.isPresent()) failNotFound();
-            model = modelFromItem(item.get());
+            try {
+                Optional<ItemT> item = findExistingItemMatchingModel();
+                if (!item.isPresent()) failNotFound();
+                model = modelFromItem(item.get());
+            } catch (Exception e) {
+                logger.log("Exception caught reading model, rethrowing. " + e);
+                throw e;
+            }
         }
 
         public void update() throws Exception {
-            Optional<ItemT> item = findExistingItemMatchingModel();
-            if (!item.isPresent()) failNotFound();
-            List<String> updates = new ArrayList<>();
-            updateItem(item.get(), updates);
-            if (!updates.isEmpty()) item = findExistingItemMatchingModel();
-            model = modelFromItem(item.get());
-            result = success(updates.isEmpty()
-                    ? "No changes"
-                    : "Changes: "+updates);
+            try {
+                Optional<ItemT> item = findExistingItemMatchingModel();
+                if (!item.isPresent()) failNotFound();
+                List<String> updates = new ArrayList<>();
+                updateItem(item.get(), updates);
+                if (!updates.isEmpty()) item = findExistingItemMatchingModel();
+                model = modelFromItem(item.get());
+                result = success(updates.isEmpty()
+                        ? "No changes"
+                        : "Changes: " + updates);
+            } catch (Exception e) {
+                logger.log("Exception caught updating model, rethrowing. " + e);
+                throw e;
+            }
         }
 
         public void delete() throws Exception {
-            Optional<ItemT> item = findExistingItemMatchingModel();
-            if (!item.isPresent()) failNotFound();
-            deleteItem(item.get());
-            model = null;
+            try {
+                Optional<ItemT> item = findExistingItemMatchingModel();
+                if (!item.isPresent()) failNotFound();
+                deleteItem(item.get());
+                model = null;
+            } catch (Exception e) {
+                logger.log("Exception caught deleting model, rethrowing. " + e);
+                throw e;
+            }
         }
 
         public void list() throws Exception {
-            List<ResourceModelT> models = readExistingItems().stream().map(this::modelFromItem).collect(Collectors.toList());
-            result = ProgressEvent.<ResourceModelT, CallbackContextT>builder()
-                    .resourceModels(models)
-                    .status(OperationStatus.SUCCESS)
-                    .build();
+            try {
+                List<ResourceModelT> models = readExistingItems().stream().map(this::modelFromItem).collect(Collectors.toList());
+                result = ProgressEvent.<ResourceModelT, CallbackContextT>builder()
+                        .resourceModels(models)
+                        .status(OperationStatus.SUCCESS)
+                        .build();
+            } catch (Exception e) {
+                logger.log("Exception caught listing model, rethrowing. " + e);
+                throw e;
+            }
         }
     }
 }
