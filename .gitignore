@@ -77,3 +77,32 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+# macOS
+.DS_Store
+._*
+env
+*.class
+*.jar
+# Maven outputs
+.classpath
+*.swp
+
+# IntelliJ
+*.iml
+.idea
+out.java
+out/
+.settings
+.project
+
+# auto-generated files
+target/
+
+# our logs
+rpdk.log*
+*.log
+
+# contains credentials
+sam-tests/
+.gitlab_cfn_tests
+.hypothesis

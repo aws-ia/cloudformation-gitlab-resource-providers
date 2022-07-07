@@ -1,0 +1,8 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to create a GitLab project
+Resources:
+  MySampleProject:
+    Type: GitLab::Projects::Project
+    Properties:
+      Name: my-sample-project
