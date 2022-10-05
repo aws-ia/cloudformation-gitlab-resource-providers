@@ -76,10 +76,6 @@
             "permissions": [
             ]
         },
-        "update": {
-            "permissions": [
-            ]
-        },
         "delete": {
             "permissions": [
             ]

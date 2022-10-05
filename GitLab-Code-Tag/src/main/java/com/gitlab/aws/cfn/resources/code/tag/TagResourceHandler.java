@@ -11,6 +11,7 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Tag;
 import org.slf4j.LoggerFactory;
+import software.amazon.cloudformation.exceptions.CfnNotUpdatableException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -90,27 +91,7 @@ public class TagResourceHandler extends AbstractGitlabCombinedResourceHandler<Ta
 
         @Override
         public void updateItem(Tag existingItem, List<String> updates) throws GitLabApiException {
-            if (!Objects.equals(model.getMessage(), existingItem.getMessage())) {
-                updates.add("Message");
-            }
-            if (ALLOW_REF_UPDATES && model.getRef()!=null && !Objects.equals(model.getRef(), existingItem.getCommit().getId()) && !Objects.equals(model.getCommitId(), existingItem.getCommit().getId())) {
-                // we could repoint the ref, if it has changed; but what guarantees are there that other model fields are set
-                // also for now, ref is set in the json definition model as not updateable anyway
-                updates.add("Ref");
-            }
-            if (!updates.isEmpty()) {
-                String oldRef = model.getRef();
-                if (model.getCommitId()!=null) {
-                    // can we rely on commit ID being remembered??
-                    model.setRef(model.getCommitId());
-                }
-
-                // there is no update API
-                deleteItem(existingItem);
-                createItem();
-
-                model.setRef(oldRef);
-            }
+            throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, request.getLogicalResourceIdentifier());
         }
     }
 
