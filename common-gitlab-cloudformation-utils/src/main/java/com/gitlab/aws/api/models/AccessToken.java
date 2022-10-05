@@ -1,11 +1,24 @@
 package com.gitlab.aws.api.models;
 
-import org.gitlab4j.api.utils.JacksonJson;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class AccessToken {
     private String userId;
     private List<String> scopes;
@@ -18,10 +31,7 @@ public class AccessToken {
     private String token;
     private Integer accessLevel;
 
-    public AccessToken() {
-    }
-
-    public static AccessToken of(Map<?,?> m) {
+    public static AccessToken of(Map<?, ?> m) {
         AccessToken result = new AccessToken();
         result.id = (Integer) m.get("id");
         result.name = (String) m.get("name");
@@ -33,116 +43,6 @@ public class AccessToken {
         result.revoked = (Boolean) m.get("revoked");
         result.accessLevel = (Integer) m.get("access_level");
         return result;
-    }
-
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public AccessToken withCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-    public AccessToken withName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<String> getScopes() {
-        return scopes;
-    }
-
-    public void setScopes(List<String> scopes) {
-        this.scopes = scopes;
-    }
-
-    public AccessToken withScopes(List<String> scopes) {
-        this.scopes = scopes;
-        return this;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public Boolean getRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(Boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public Date getExpiresAt() {
-        return expiresAt;
-    }
-
-    public void setExpiresAt(Date expiresAt) {
-        this.expiresAt = expiresAt;
-    }
-
-    public AccessToken withExpiresAt(Date expiresAt) {
-        this.expiresAt = expiresAt;
-        return this;
-    }
-
-    public Integer getAccessLevel() {
-        return accessLevel;
-    }
-
-    public void setAccessLevel(Integer accessLevel) {
-        this.accessLevel = accessLevel;
-    }
-
-    public AccessToken withAccessLevel(Integer accessLevel) {
-        this.accessLevel = accessLevel;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return (JacksonJson.toJsonString(this));
     }
 }
 

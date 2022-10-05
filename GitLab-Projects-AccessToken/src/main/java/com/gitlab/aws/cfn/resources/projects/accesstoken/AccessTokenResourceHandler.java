@@ -82,15 +82,15 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
 
         @Override
         public AccessToken createItem() throws GitLabApiException {
-            AccessToken AccessToken = new AccessToken()
-                    .withName(model.getName())
-                    .withScopes(model.getScopes())
-                    .withAccessLevel(model.getAccessLevel())
-                    .withCreatedAt(Date.from(Instant.now())) // defaults for now
-                    .withExpiresAt(Date.from(Instant.now().plus(30, ChronoUnit.DAYS))) // defaults for now
-                    .withAccessLevel(30) // defaults for now
-                    ;
-            return postAccessToken(gitlab, model.getProjectId(), AccessToken); //this will have its 'token' property set.
+            AccessToken accessToken = AccessToken.builder()
+                    .name(model.getName())
+                    .scopes(model.getScopes())
+                    .accessLevel(model.getAccessLevel())
+                    .createdAt(Date.from(Instant.now())) // defaults for now
+                    .expiresAt(Date.from(Instant.now().plus(30, ChronoUnit.DAYS))) // defaults for now
+                    .accessLevel(30) // defaults for now
+                    .build();
+            return postAccessToken(gitlab, model.getProjectId(), accessToken); //this will have its 'token' property set.
         }
 
         @Override
