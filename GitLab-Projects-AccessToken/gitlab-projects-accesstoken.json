@@ -1,7 +1,7 @@
 {
     "typeName": "GitLab::Projects::AccessToken",
     "description": "Creates a Project Access Token in GitLab",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/project_access_tokens.html",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

@@ -1,7 +1,7 @@
 {
     "typeName": "GitLab::Groups::GroupAccessToGroup",
     "description": "Adds a group as a member of another GitLab group",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/group_access_tokens.html",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

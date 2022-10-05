@@ -1,7 +1,7 @@
 {
     "typeName": "GitLab::Groups::Group",
     "description": "Creates a group in GitLab",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/groups.html",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

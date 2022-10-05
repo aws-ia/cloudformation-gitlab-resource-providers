@@ -1,7 +1,7 @@
 {
     "typeName": "GitLab::Groups::UserMemberOfGroup",
     "description": "Adds a user as a member of a GitLab group",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/members.html",
     "definitions": {
         "GitLabAccess": {
             "type": "object",
