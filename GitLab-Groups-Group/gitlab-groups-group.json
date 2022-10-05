@@ -37,7 +37,8 @@
         "ParentId": {
             "description": "ID of the group's parent",
             "type": "integer"
-        }    },
+        }
+    },
     "additionalProperties": false,
     "required": [
         "Name"
