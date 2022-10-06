@@ -1,0 +1,25 @@
+<project name="docs">
+
+    <target name="all" >
+        <delete dir="generated"/>
+
+        <copy todir="generated/">
+            <fileset dir="../../">
+                <include name="GitLab-*/docs/**"/>
+            </fileset>
+            <mapper type="regexp" from="^(GitLab-[^/]*)\/docs\/(.*)$$" to="resources/\1/\2"/>
+        </copy>
+
+        <copy todir="generated/">
+            <fileset dir="../../">
+                <include name="GitLab-*/docs-extra/**"/>
+            </fileset>
+            <mapper type="regexp" from="^(GitLab-[^/]*)\/docs-extra\/(.*)$$" to="resources/\1/\2"/>
+        </copy>
+
+        <copy todir="generated/">
+            <fileset dir="src/main/docs/"/>
+        </copy>
+    </target>
+
+</project>

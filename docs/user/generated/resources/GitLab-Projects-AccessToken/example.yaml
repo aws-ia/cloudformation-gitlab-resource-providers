@@ -1,0 +1,10 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shows how to create a GitLab Project Access Token
+Resources:
+  MySampleProject:
+    Type: GitLab::Projects::AccessToken
+    Properties:
+      Name: my-sample-token
+      ProjectId: 123
+      Scopes: ["api", "read_repository"]

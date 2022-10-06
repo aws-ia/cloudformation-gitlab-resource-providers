@@ -1,0 +1,90 @@
+{
+    "typeName": "GitLab::Projects::Project",
+    "description": "Creates a project in GitLab",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/projects.html",
+    "definitions": {
+        "GitLabAccess": {
+            "type": "object",
+            "properties": {
+                "Url": {
+                    "description": "URL of the GitLab Server",
+                    "type": "string"
+                },
+                "AccessToken": {
+                    "description": "Access Token",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "AccessToken"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "Name": {
+            "description": "The name of the project to create",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Path": {
+            "description": "The path of the project",
+            "type": "string",
+            "maxLength": 64
+        },
+        "Public": {
+            "description": "Whether the project should be public (default false)",
+            "type": "boolean"
+        },
+        "Id": {
+            "description": "The ID of the project",
+            "type": "integer"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "Name"
+    ],
+    "readOnlyProperties": [
+        "/properties/Id"
+    ],
+    "createOnlyProperties": [
+        "/properties/Path"
+    ],
+    "primaryIdentifier": [
+        "/properties/Id"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+            ]
+        },
+        "read": {
+            "permissions": [
+            ]
+        },
+        "update": {
+            "permissions": [
+            ]
+        },
+        "delete": {
+            "permissions": [
+            ]
+        },
+        "list": {
+            "permissions": [
+            ]
+        }
+    },
+    "typeConfiguration": {
+        "properties": {
+            "GitLabAccess": {
+                "$ref": "#/definitions/GitLabAccess"
+            }
+        },
+        "additionalProperties": false,
+        "required": [
+            "GitLabAccess"
+        ]
+    }
+}

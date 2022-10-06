@@ -1,0 +1,90 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Manages an organizaton's standard groups and users within GitLab
+
+Parameters:
+  ParentGroupId:
+    Type: Number
+    Default: 16090842
+    Description: Enter the ID of an existing group, e.g. for a "sample-company", where new groups will be created
+
+Resources:
+  All:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: { Ref: ParentGroupId }
+      Name: All Users
+      Path: company-all
+
+  AllIncludesAllDevelopers:
+    Type: GitLab::Groups::GroupAccessToGroup
+    Properties:
+      SharedGroupId: {Ref: All}
+      SharedWithGroupId: {Ref: AllDevelopers}
+      AccessLevel: Developer
+  AllIncludesAllReporters:
+    Type: GitLab::Groups::GroupAccessToGroup
+    Properties:
+      SharedGroupId: {Ref: All}
+      SharedWithGroupId: {Ref: AllReporters}
+      AccessLevel: Reporter
+
+  AllDevelopers:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: { Ref: ParentGroupId }
+      Name: All Developers
+      Path: company-all-developers
+  AllReporters:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: { Ref: ParentGroupId }
+      Name: All Reporters
+      Path: company-all-reporters
+
+  DeveloperNakomis:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: AllDevelopers}
+      Username: Nakomis
+      AccessLevel: Developer
+  DeveloperSooz:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: AllDevelopers}
+      Username: sooz
+      AccessLevel: Developer
+
+  ReporterBob:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: AllReporters}
+      Username: bob
+      AccessLevel: Reporter
+
+  FrontEndDevelopers:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: { Ref: ParentGroupId }
+      Name: Front-End Developers
+      Path: company-front-end-developers
+  FrontEndDeveloperNakomis:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: FrontEndDevelopers}
+      Username: Nakomis
+      AccessLevel: Developer
+
+  FrontEndReporters:
+    Type: GitLab::Groups::Group
+    Properties:
+      ParentId: { Ref: ParentGroupId }
+      Name: Front-End Reporters
+      Path: company-front-end-reporters
+  FrontEndReporterBob:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: {Ref: FrontEndReporters}
+      Username: bob
+      AccessLevel: Reporter
