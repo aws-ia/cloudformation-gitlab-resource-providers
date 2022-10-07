@@ -4,13 +4,13 @@ import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler
 import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.ProjectSharedGroup;
+import software.amazon.cloudformation.exceptions.CfnNotUpdatableException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -83,13 +83,7 @@ public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedR
 
         @Override
         public void updateItem(ProjectSharedGroup existingItem, List<String> updates) throws Exception {
-            if (!Objects.equals(getAccessLevel(), existingItem.getGroupAccessLevel())) {
-                updates.add("AccessLevel");
-            }
-            if (!updates.isEmpty()) {
-                deleteItem(existingItem);
-                createItem();
-            }
+            throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, request.getLogicalResourceIdentifier());
         }
     }
 

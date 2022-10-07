@@ -1,7 +1,7 @@
 {
     "typeName": "GitLab::Projects::GroupAccessToProject",
     "description": "Adds a group as a member of a GitLab project",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/group_access_tokens.html",
+    "sourceUrl": "https://docs.gitlab.com/ee/api/projects.html#list-a-projects-groups",
     "definitions": {
         "GitLabAccess": {
             "type": "object",
@@ -50,6 +50,9 @@
         }
     },
     "additionalProperties": false,
+    "tagging": {
+        "taggable": false
+    },
     "required": [
         "ProjectId",
         "GroupId",
@@ -63,6 +66,8 @@
         "/properties/GroupId"
     ],
     "primaryIdentifier": [
+        "/properties/ProjectId",
+        "/properties/GroupId",
         "/properties/MembershipId"
     ],
     "handlers": {
@@ -71,10 +76,6 @@
             ]
         },
         "read": {
-            "permissions": [
-            ]
-        },
-        "update": {
             "permissions": [
             ]
         },
