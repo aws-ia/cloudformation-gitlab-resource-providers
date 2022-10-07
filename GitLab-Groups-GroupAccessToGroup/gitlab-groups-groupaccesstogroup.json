@@ -50,6 +50,9 @@
         }
     },
     "additionalProperties": false,
+    "tagging": {
+        "taggable": false
+    },
     "required": [
         "SharedGroupId",
         "SharedWithGroupId",
@@ -63,6 +66,8 @@
         "/properties/SharedWithGroupId"
     ],
     "primaryIdentifier": [
+        "/properties/SharedGroupId",
+        "/properties/SharedWithGroupId",
         "/properties/MembershipId"
     ],
     "handlers": {
@@ -71,10 +76,6 @@
             ]
         },
         "read": {
-            "permissions": [
-            ]
-        },
-        "update": {
             "permissions": [
             ]
         },
