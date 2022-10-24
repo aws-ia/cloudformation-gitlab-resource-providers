@@ -20,7 +20,7 @@ import java.util.Map;
 @ToString
 @EqualsAndHashCode
 public class AccessToken {
-    private String userId;
+    private Integer userId;
     private List<String> scopes;
     private String name;
     private Date expiresAt;
@@ -35,10 +35,8 @@ public class AccessToken {
         AccessToken result = new AccessToken();
         result.id = (Integer) m.get("id");
         result.name = (String) m.get("name");
-        result.userId = (String) m.get("user_id");
+        result.userId = (Integer) m.get("user_id");
         result.scopes = (List<String>) m.get("scopes");
-        result.expiresAt = (Date) m.get("expires_at");
-        result.createdAt = (Date) m.get("created_at");
         result.active = (Boolean) m.get("active");
         result.revoked = (Boolean) m.get("revoked");
         result.accessLevel = (Integer) m.get("access_level");
