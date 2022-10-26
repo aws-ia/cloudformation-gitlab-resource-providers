@@ -55,10 +55,6 @@
     },
     "additionalProperties": false,
     "required":  ["GroupId" , "AccessLevel"]  ,
-    "oneOf":  [
-                {"required" : [ "Username"]},
-                {"required": ["UserId" ]}
-    ],
     "readOnlyProperties": [
         "/properties/MembershipId"
     ],

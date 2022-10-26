@@ -1,0 +1,14 @@
+{
+    "CREATE": {
+        "/GroupId": <GROUP_ID>,
+        "/Username": "<USERNAME>",
+        "/UserId": <USER_ID>,
+        "/AccessLevel": "Guest"
+    },
+    "UPDATE": {
+        "/GroupId": <GROUP_ID>,
+        "/Username": "<USERNAME>",
+        "/UserId": <USER_ID>,
+        "/AccessLevel": "Developer"
+    }
+}
