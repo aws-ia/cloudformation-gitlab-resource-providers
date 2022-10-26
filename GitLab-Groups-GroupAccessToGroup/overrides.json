@@ -1,0 +1,12 @@
+{
+    "CREATE": {
+        "/SharedGroupId": <SHARED_GROUP_ID>,
+        "/SharedWithGroupId": <SHARED_WITH_GROUP_ID>,
+        "/AccessLevel": "Guest"
+    },
+    "UPDATE": {
+        "/SharedGroupId": <SHARED_GROUP_ID>,
+        "/SharedWithGroupId": <SHARED_WITH_GROUP_ID>,
+        "/AccessLevel": "Developer"
+    }
+}

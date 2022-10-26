@@ -1,8 +1,12 @@
 {
     "CREATE": {
-        "/Name": "cfn-test-sample-project"
+        "/Name": "cfn-test-sample-project",
+        "/Path": "this-is-the-path",
+        "/Public": false
     },
     "UPDATE": {
-        "/Name": "cfn-test-sample-project-renamed"
+        "/Name": "cfn-test-sample-project-renamed",
+        "/Path": "this-is-the-updated-path",
+        "/Public": true
     }
 }
