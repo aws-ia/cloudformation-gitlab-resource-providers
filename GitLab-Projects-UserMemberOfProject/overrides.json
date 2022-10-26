@@ -1,0 +1,14 @@
+{
+    "CREATE": {
+        "/ProjectId": <PROJECT_ID>,
+        "/Username": "<USERNAME>",
+        "/UserId": <USER_ID>,
+        "/AccessLevel": "Guest"
+    },
+    "UPDATE": {
+        "/ProjectId": <PROJECT_ID>,
+        "/Username": "<USERNAME>",
+        "/UserId": <USER_ID>,
+        "/AccessLevel": "Developer"
+    }
+}

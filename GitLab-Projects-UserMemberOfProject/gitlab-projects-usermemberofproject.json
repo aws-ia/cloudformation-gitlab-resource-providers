@@ -58,10 +58,6 @@
         "ProjectId",
         "AccessLevel"
     ],
-    "oneOf":  [
-        {"required" : ["Username"]},
-        {"required": ["UserId" ]}
-    ],
     "readOnlyProperties": [
         "/properties/MembershipId"
     ],
