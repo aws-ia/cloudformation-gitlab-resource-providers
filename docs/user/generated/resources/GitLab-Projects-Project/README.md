@@ -53,6 +53,8 @@ _Type_: String
 
 _Maximum_: <code>64</code>
 
+_Pattern_: <code>^[a-zA-Z0-9_';:, \!\-\.\*\"\?]*$</code>
+
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### Public
