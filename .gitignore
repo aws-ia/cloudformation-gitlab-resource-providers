@@ -78,8 +78,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 # macOS
-.DS_Store
-._*
 env
 *.class
 *.jar
