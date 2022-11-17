@@ -11,10 +11,7 @@ import org.gitlab4j.api.models.GroupParams;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.ProjectSharedGroup;
 import org.slf4j.LoggerFactory;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.*;
 
 public class GroupResourceHandler extends AbstractGitlabCombinedResourceHandler<GroupResourceHandler,Group,Integer, ResourceModel,CallbackContext,TypeConfigurationModel> {
 
@@ -39,6 +36,11 @@ public class GroupResourceHandler extends AbstractGitlabCombinedResourceHandler<
     @Override
     public GroupHelper newHelper() {
         return new GroupHelper();
+    }
+
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
     }
 
     public class GroupHelper extends Helper {
@@ -84,7 +86,7 @@ public class GroupResourceHandler extends AbstractGitlabCombinedResourceHandler<
 
         @Override
         public void updateItem(Group existingItem, List<String> updates) throws GitLabApiException {
-            // no updates supported
+            result = failure(HandlerErrorCode.NotUpdatable);
         }
     }
 

@@ -47,6 +47,11 @@ public class GroupAccessToGroupResourceHandler extends AbstractGitlabCombinedRes
         return new GroupMemberHelper();
     }
 
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
+    }
+
     public class GroupMemberHelper extends Helper {
 
         @Override

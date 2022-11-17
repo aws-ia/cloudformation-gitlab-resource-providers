@@ -39,6 +39,11 @@ public class GroupAccessToProjectResourceHandler extends AbstractGitlabCombinedR
         return new ProjectSharedGroupHelper();
     }
 
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
+    }
+
     public class ProjectSharedGroupHelper extends Helper {
         @Override
         public Pair<Integer,Integer> getId(ResourceModel model) {

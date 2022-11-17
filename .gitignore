@@ -104,3 +104,5 @@ rpdk.log*
 sam-tests/
 .gitlab_cfn_tests
 .hypothesis
+
+*.zip

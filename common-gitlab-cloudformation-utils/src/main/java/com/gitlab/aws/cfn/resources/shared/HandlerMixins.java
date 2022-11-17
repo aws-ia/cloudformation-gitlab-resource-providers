@@ -8,6 +8,8 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 
 public interface HandlerMixins<ResourceModel, CallbackContext> {
 
+    int CALLBACK_DELAY_SECONDS = 2;
+
     ResourceModel getModel();
 
     default ProgressEvent<ResourceModel, CallbackContext> success() {
@@ -22,6 +24,15 @@ public interface HandlerMixins<ResourceModel, CallbackContext> {
                 .resourceModel(getModel())
                 .status(OperationStatus.SUCCESS)
                 .message(message)
+                .build();
+    }
+
+    default ProgressEvent<ResourceModel, CallbackContext> inProgress(CallbackContext callbackContext) {
+        return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                .resourceModel(getModel())
+                .callbackContext(callbackContext)
+                .status(OperationStatus.IN_PROGRESS)
+                .callbackDelaySeconds(CALLBACK_DELAY_SECONDS)
                 .build();
     }
 

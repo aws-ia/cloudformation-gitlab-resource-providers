@@ -55,7 +55,8 @@
         "Scopes"
     ],
     "primaryIdentifier": [
-        "/properties/Id"
+        "/properties/Id",
+        "/properties/ProjectId"
     ],
     "readOnlyProperties": [
         "/properties/Id"
@@ -71,10 +72,6 @@
             ]
         },
         "read": {
-            "permissions": [
-            ]
-        },
-        "update": {
             "permissions": [
             ]
         },

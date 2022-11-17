@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+    The following CloudFormation allow the creation and configuration of DNS Records.
+  
+Resources:
+  GitTag:
+    Type: GitLab::Code::Tag
+    Properties:
+        ProjectId: 35842664
+        Ref: 896bfb8a0c1dc8e66a0b2ba5d8185c62f09ee1a3
+        Name: CTV2TestDJG
+

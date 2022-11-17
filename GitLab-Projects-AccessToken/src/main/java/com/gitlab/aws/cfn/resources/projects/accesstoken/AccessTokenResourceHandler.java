@@ -48,6 +48,11 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
         return new AccessTokenHelper();
     }
 
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
+    }
+
     public class AccessTokenHelper extends Helper {
         @Override
         public Pair<Integer,Integer> getId(ResourceModel model) {

@@ -5,7 +5,7 @@ import org.gitlab4j.api.GitLabApi;
 
 public abstract class AbstractGitlabCombinedResourceHandler<
             This extends AbstractGitlabCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
-            ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+            ItemT, IdT, ResourceModelT, CallbackContextT extends RetryableCallbackContext, TypeConfigurationModelT>
         extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT> {
 
     public final static String DEFAULT_URL = "https://gitlab.com/";

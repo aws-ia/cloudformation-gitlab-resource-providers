@@ -1,33 +1,17 @@
 package com.gitlab.aws.cfn.resources.projects.project;
 
-import com.gitlab.aws.cfn.resources.projects.project.BaseHandler;
-import com.gitlab.aws.cfn.resources.projects.project.CallbackContext;
-import com.gitlab.aws.cfn.resources.projects.project.ResourceModel;
-import com.gitlab.aws.cfn.resources.projects.project.TypeConfigurationModel;
-import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler;
-import com.gitlab.aws.cfn.resources.shared.AbstractCombinedResourceHandler.Helper;
 import com.gitlab.aws.cfn.resources.shared.AbstractGitlabCombinedResourceHandler;
-import com.gitlab.aws.cfn.resources.shared.GitLabUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.AccessLevel;
-import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
-import org.gitlab4j.api.models.ProjectSharedGroup;
 import org.gitlab4j.api.models.Visibility;
 import org.slf4j.LoggerFactory;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
@@ -54,6 +38,11 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
     @Override
     public ProjectHelper newHelper() {
         return new ProjectHelper();
+    }
+
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
     }
 
     public class ProjectHelper extends Helper {
@@ -102,7 +91,16 @@ public class ProjectResourceHandler extends AbstractGitlabCombinedResourceHandle
                     .withWikiEnabled(true)
                     .withSnippetsEnabled(true)
                     ;
-            return gitlab.getProjectApi().createProject(projectSpec);
+            try {
+                return gitlab.getProjectApi().createProject(projectSpec);
+            } catch (GitLabApiException e) {
+                String validationErrorsMessage  = "";
+                Map<String, List<String>> validationErrors = e.getValidationErrors();
+                if(!validationErrors.isEmpty()) {
+                    validationErrorsMessage = validationErrors.entrySet().stream().map(stringListEntry -> stringListEntry.getKey() + stringListEntry.getValue().stream().collect(Collectors.joining(","))).collect(Collectors.joining(","));
+                }
+                throw new RuntimeException(validationErrorsMessage, e);
+            }
         }
 
         public boolean isPublic(Project item) {

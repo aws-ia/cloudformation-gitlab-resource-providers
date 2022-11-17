@@ -24,5 +24,16 @@
         "codegen_template_path": "default",
         "protocolVersion": "2.0.0"
     },
+    "contractSettings":{
+        "typeConfiguration": {
+            "configuration": {
+                "GitLabAccess": {
+                    "AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/token:5}}",
+                    "Url": "{{resolve:ssm-secure:/cfn/gitlab/url:3}}"
+                }
+            },
+            "configurationAlias": "default"
+        }
+    },
     "executableEntrypoint": "com.gitlab.aws.cfn.resources.projects.accesstoken.HandlerWrapperExecutable"
 }
