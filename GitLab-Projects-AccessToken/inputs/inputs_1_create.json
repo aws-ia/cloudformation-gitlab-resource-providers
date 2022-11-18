@@ -1,7 +1,7 @@
 {
     "Name": "TestAccessToken",
-    "ProjectId": 35842664,
-    "AccessLevel": 40,
+    "ProjectId": <PROJECT_ID>,
+    "AccessLevel": 30,
     "Scopes": [
         "api",
         "write_registry"

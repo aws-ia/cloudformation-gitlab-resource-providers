@@ -1,5 +1,5 @@
 {
-    "Name": "djg-cfn-test-sample-project",
+    "Name": "cfn-test-sample-project",
     "Path": "this-is-the-path",
     "Public": false
 }

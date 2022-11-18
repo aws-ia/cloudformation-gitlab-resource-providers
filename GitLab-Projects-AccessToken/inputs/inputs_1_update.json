@@ -1,9 +1,0 @@
-{
-    "Name": "UpdatedAccessToken",
-    "ProjectId": 35842664,
-    "AccessLevel": 40,
-    "Scopes": [
-        "api",
-        "read_registry"
-    ]
-}

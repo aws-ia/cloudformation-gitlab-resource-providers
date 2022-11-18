@@ -66,6 +66,9 @@
         "/properties/Name",
         "/properties/Scopes"
     ],
+    "writeOnlyProperties": [
+        "/properties/ProjectId"
+    ],
     "handlers": {
         "create": {
             "permissions": [

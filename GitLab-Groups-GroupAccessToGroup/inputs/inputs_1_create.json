@@ -1,5 +1,5 @@
 {
-    "SharedGroupId": 59545863,
-    "SharedWithGroupId": 59545886,
+    "SharedGroupId": <FIRST_GROUP_ID>,
+    "SharedWithGroupId": <SECOND_GROUP_ID>,
     "AccessLevel": "Guest"
 }
