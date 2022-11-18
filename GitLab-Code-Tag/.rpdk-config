@@ -28,8 +28,8 @@
         "typeConfiguration": {
             "configuration": {
                 "GitLabAccess": {
-                    "AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/token:5}}",
-                    "Url": "{{resolve:ssm-secure:/cfn/gitlab/url:3}}"
+                    "AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/token:1}}",
+                    "Url": "{{resolve:ssm-secure:/cfn/gitlab/url:1}}"
                 }
             },
             "configurationAlias": "default"
