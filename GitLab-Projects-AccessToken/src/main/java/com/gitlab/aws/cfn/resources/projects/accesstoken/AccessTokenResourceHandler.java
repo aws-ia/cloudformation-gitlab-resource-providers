@@ -81,7 +81,8 @@ public class AccessTokenResourceHandler extends AbstractGitlabCombinedResourceHa
             m.setName(item.getName());
             m.setProjectId(model.getProjectId());
             m.setScopes(item.getScopes());
-            m.setAccessLevel(model.getAccessLevel());
+            m.setAccessLevel(item.getAccessLevel());
+
             return m;
         }
 
