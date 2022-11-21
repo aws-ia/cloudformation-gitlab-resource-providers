@@ -46,6 +46,11 @@ public class TagResourceHandler extends AbstractGitlabCombinedResourceHandler<Ta
         return new TagHelper();
     }
 
+    @Override
+    protected CallbackContext newCallbackContext(int retries) {
+        return new CallbackContext(retries);
+    }
+
     public class TagHelper extends Helper {
         @Override
         public Pair<Integer,String> getId(ResourceModel model) {

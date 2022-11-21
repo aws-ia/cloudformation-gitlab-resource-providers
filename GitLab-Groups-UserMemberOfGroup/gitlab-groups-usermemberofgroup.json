@@ -64,7 +64,10 @@
         "/properties/Username"
     ],
     "primaryIdentifier": [
-        "/properties/MembershipId"
+        "/properties/MembershipId",
+        "/properties/GroupId",
+        "/properties/UserId",
+        "/properties/Username"
     ],
     "handlers": {
         "create": {

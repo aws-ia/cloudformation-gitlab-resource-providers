@@ -1,0 +1,5 @@
+{
+    "Name": "cfn-test-sample-project",
+    "Path": "this-is-the-path",
+    "Public": true
+}

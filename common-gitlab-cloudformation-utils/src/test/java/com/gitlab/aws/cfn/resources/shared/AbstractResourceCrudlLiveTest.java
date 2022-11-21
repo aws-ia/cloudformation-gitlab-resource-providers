@@ -38,7 +38,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 @Tag("Live")
 public abstract class AbstractResourceCrudlLiveTest<
         CombinedHandlerT extends AbstractCombinedResourceHandler<CombinedHandlerT, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
-        ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+        ItemT, IdT, ResourceModelT, CallbackContextT extends RetryableCallbackContext, TypeConfigurationModelT>
         extends GitLabLiveTestSupport {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractResourceCrudlLiveTest.class);

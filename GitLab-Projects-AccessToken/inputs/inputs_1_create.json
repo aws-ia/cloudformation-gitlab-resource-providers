@@ -1,0 +1,9 @@
+{
+    "Name": "TestAccessToken",
+    "ProjectId": <PROJECT_ID>,
+    "AccessLevel": 30,
+    "Scopes": [
+        "api",
+        "write_registry"
+    ]
+}

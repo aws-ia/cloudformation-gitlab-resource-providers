@@ -21,7 +21,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public abstract class AbstractCombinedResourceHandler<
         This extends AbstractCombinedResourceHandler<This, ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>,
-        ItemT, IdT, ResourceModelT, CallbackContextT, TypeConfigurationModelT>
+        ItemT, IdT, ResourceModelT, CallbackContextT extends RetryableCallbackContext, TypeConfigurationModelT>
         implements HandlerMixins<ResourceModelT, CallbackContextT> {
 
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractCombinedResourceHandler.class);
@@ -34,7 +34,7 @@ public abstract class AbstractCombinedResourceHandler<
 
     protected ProgressEvent<ResourceModelT, CallbackContextT> result = null;
 
-    public interface BaseHandlerAdapterDefault<This extends AbstractCombinedResourceHandler<This,?,?, ResourceModel, CallbackContext, TypeConfigurationModel>, ResourceModel, CallbackContext, TypeConfigurationModel> {
+    public interface BaseHandlerAdapterDefault<This extends AbstractCombinedResourceHandler<This,?,?, ResourceModel, CallbackContext, TypeConfigurationModel>, ResourceModel, CallbackContext extends RetryableCallbackContext, TypeConfigurationModel> {
         This newCombinedHandler();
 
         default ProgressEvent<ResourceModel, CallbackContext> handleRequest(AmazonWebServicesClientProxy proxy, ResourceHandlerRequest<ResourceModel> request, CallbackContext callbackContext, Logger logger, TypeConfigurationModel typeConfiguration) {
@@ -221,9 +221,25 @@ public abstract class AbstractCombinedResourceHandler<
         public void delete() throws Exception {
             try {
                 Optional<ItemT> item = findExistingItemMatchingModel();
+                if(callbackContext != null) {
+                    // Delete has already been called and hopefully the project has now been deleted
+                    if (item.isPresent()) {
+                        // Deletion Failed or not yet done?
+                        if (callbackContext.getRetry() <= 0) {
+                            result = failure(HandlerErrorCode.NotStabilized, "Resource not deleted after 5 retries");
+                        } else {
+                            deleteItem(item.get());
+                            result = inProgress(newCallbackContext(callbackContext.getRetry() - 1));
+                        }
+                    }
+                    model = null;
+                    return;
+                }
+
+                // First attempt at deletion
                 if (!item.isPresent()) failNotFound();
                 deleteItem(item.get());
-                model = null;
+                result = inProgress(newCallbackContext(5));
             } catch (Exception e) {
                 logger.log("Exception caught deleting model, rethrowing. " + e);
                 throw e;
@@ -243,4 +259,6 @@ public abstract class AbstractCombinedResourceHandler<
             }
         }
     }
+
+    protected abstract CallbackContextT newCallbackContext(int retries);
 }
