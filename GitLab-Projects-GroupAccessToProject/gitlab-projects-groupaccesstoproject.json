@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Projects::GroupAccessToProject",
     "description": "Adds a group as a member of a GitLab project",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/projects.html#list-a-projects-groups",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

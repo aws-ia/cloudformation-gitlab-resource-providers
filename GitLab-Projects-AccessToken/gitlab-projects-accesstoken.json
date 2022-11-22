@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Projects::AccessToken",
     "description": "Creates a Project Access Token in GitLab",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/project_access_tokens.html",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

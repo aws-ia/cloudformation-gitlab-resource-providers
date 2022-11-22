@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Projects::UserMemberOfProject",
     "description": "Adds a user as a member of a GitLab project",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/members.html#add-a-member-to-a-group-or-project",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",
