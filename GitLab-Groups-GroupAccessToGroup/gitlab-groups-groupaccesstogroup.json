@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Groups::GroupAccessToGroup",
     "description": "Adds a group as a member of another GitLab group",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/group_access_tokens.html",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

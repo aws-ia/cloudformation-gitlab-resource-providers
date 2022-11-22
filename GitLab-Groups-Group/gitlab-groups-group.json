@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Groups::Group",
     "description": "Creates a group in GitLab",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/groups.html",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",

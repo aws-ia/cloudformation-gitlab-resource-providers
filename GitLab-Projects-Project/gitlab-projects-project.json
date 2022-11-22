@@ -1,7 +1,8 @@
 {
     "typeName": "GitLab::Projects::Project",
     "description": "Creates a project in GitLab",
-    "sourceUrl": "https://docs.gitlab.com/ee/api/projects.html",
+    "sourceUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers.git",
+    "documentationUrl": "https://github.com/aws-ia/cloudformation-gitlab-resource-providers",
     "definitions": {
         "GitLabAccess": {
             "type": "object",
