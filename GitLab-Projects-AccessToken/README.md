@@ -2,7 +2,7 @@
 
 This resource type manages a [GitLab Project Access Token][11]
 
-[Documentation][4]
+[Documentation][26]
 
 ## Prerequisites
 * [AWS Account][19]
@@ -113,3 +113,4 @@ Resources:
 [23]: https://aws.amazon.com/console/
 [24]: https://console.aws.amazon.com/cloudformation/home
 [25]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html
+[26]: ./docs/README.md

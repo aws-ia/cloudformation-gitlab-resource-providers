@@ -342,3 +342,4 @@ Resources:
 [23]: https://aws.amazon.com/console/
 [24]: https://console.aws.amazon.com/cloudformation/home
 [25]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/registry.html
+[26]: ./docs/README.md
