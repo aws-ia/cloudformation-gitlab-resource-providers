@@ -1,7 +1,6 @@
-# GitLab::Projects::UserMemberOfProject
+# GitLab::Groups::UserMemberOfGroup
 
-
-This resource type manages a [GitLab Project Membership][17]
+This resource type manages a [GitLab Group Membership][9]
 
 [Documentation][26]
 
@@ -9,7 +8,7 @@ This resource type manages a [GitLab Project Membership][17]
 * [AWS Account][19]
 * [AWS CLI][20]
 * [GitLab Account][21] and [Access Token][22]
-
+ 
 ## AWS Management Console
 
 To get started:
@@ -38,7 +37,7 @@ For example:
   ```Bash
   $ aws cloudformation set-type-configuration \
   --region us-west-2 --type RESOURCE \
-  --type-name GitLab::Projects::UserMemberOfProject \
+  --type-name GitLab::Groups::UserMemberOfGroup \
   --configuration-alias default \
   --configuration '{ "GitLabAccess": { "AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/token:1}}", "Url": "{{resolve:ssm-secure:/cfn/gitlab/url:1}}"}}'
   ```
@@ -74,17 +73,17 @@ The GitLab CloudFormation resources are available on the CloudFormation Public R
 
 ## Examples
 
-### Shows how to add a GitLab user to a GitLab project
+### Shows how to add a user to a group in GitLab
 
 ```yaml
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Shows how to add a GitLab user to a GitLab project
+Description: Shows how to add a GitLab user to a GitLab group
 Resources:
-  MyUserJoiningAProject:
-    Type: GitLab::Groups::UserMemberOfProject
+  MyUserJoiningAGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
     Properties:
-      ProjectId: 16020673
+      GroupId: 16020673
       UserId: 1092680           # or Username
       AccessLevel: Maintainer
 ```

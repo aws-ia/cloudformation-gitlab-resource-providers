@@ -1,15 +1,13 @@
-# GitLab::Projects::UserMemberOfProject
+# GitLab::Groups::Group
 
+This resource type manages a [GitLab Groups Group][5]
 
-This resource type manages a [GitLab Project Membership][17]
-
-[Documentation][26]
+[Documentation][4]
 
 ## Prerequisites
 * [AWS Account][19]
 * [AWS CLI][20]
 * [GitLab Account][21] and [Access Token][22]
-
 ## AWS Management Console
 
 To get started:
@@ -38,7 +36,7 @@ For example:
   ```Bash
   $ aws cloudformation set-type-configuration \
   --region us-west-2 --type RESOURCE \
-  --type-name GitLab::Projects::UserMemberOfProject \
+  --type-name GitLab::Groups::Group \
   --configuration-alias default \
   --configuration '{ "GitLabAccess": { "AccessToken": "{{resolve:ssm-secure:/cfn/gitlab/token:1}}", "Url": "{{resolve:ssm-secure:/cfn/gitlab/url:1}}"}}'
   ```
@@ -74,39 +72,23 @@ The GitLab CloudFormation resources are available on the CloudFormation Public R
 
 ## Examples
 
-### Shows how to add a GitLab user to a GitLab project
+### Shows how to create a Group in GitLab
 
 ```yaml
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Shows how to add a GitLab user to a GitLab project
+Description: Shows how to create a group in GitLab. Note a group ParentId is usually required by GitLab.
 Resources:
-  MyUserJoiningAProject:
-    Type: GitLab::Groups::UserMemberOfProject
+  MySampleGroup:
+    Type: GitLab::Groups::Group
     Properties:
-      ProjectId: 16020673
-      UserId: 1092680           # or Username
-      AccessLevel: Maintainer
+      ParentId: 16020673
+      Name: my-sample-group
+      Path: path-to-sample-group
 ```
 
-[1]: https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-types.html
-[2]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
-[3]: https://docs.gitlab.com/ee/topics/git/tags.html
-[4]: GitLab-Code-Tag
+[4]: ./docs/README.md
 [5]: https://docs.gitlab.com/ee/user/group/#groups
-[6]: GitLab-Groups-Group
-[7]: https://docs.gitlab.com/ee/user/group/access_and_permissions.html
-[8]: GitLab-Groups-GroupAccessToGroup
-[9]: https://docs.gitlab.com/ee/user/group/manage.html#add-users-to-a-group
-[10]: GitLab-Groups-UserMemberOfGroup
-[11]: https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html#project-access-tokens
-[12]: GitLab-Projects-AccessToken
-[13]: https://docs.gitlab.com/ee/api/members.html#give-a-group-access-to-a-project
-[14]: GitLab-Projects-GroupAccessToProject
-[15]: https://docs.gitlab.com/ee/user/project/working_with_projects.html
-[16]: GitLab-Projects-Project
-[17]: https://docs.gitlab.com/ee/user/project/members/#add-users-to-a-project
-[18]: GitLab-Projects-UserMemberOfProject
 [19]: https://aws.amazon.com/account/
 [20]: https://aws.amazon.com/cli/
 [21]: https://about.gitlab.com/
