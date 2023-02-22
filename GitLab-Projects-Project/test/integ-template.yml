@@ -1,0 +1,5 @@
+Resources:
+  MySampleProject:
+    Type: GitLab::Projects::Project
+    Properties:
+      Name: my-sample-project
