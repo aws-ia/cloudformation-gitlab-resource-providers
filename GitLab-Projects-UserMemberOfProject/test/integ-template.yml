@@ -1,0 +1,8 @@
+Resources:
+  MyUserJoiningAProject:
+    Type: GitLab::Projects::UserMemberOfProject
+    Properties:
+      ProjectId: GITLAB_PROJECT_ID
+      UserId: GITLAB_USER_ID
+      Username: GITLAB_USER_NAME
+      AccessLevel: Guest

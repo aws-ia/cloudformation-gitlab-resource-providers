@@ -1,0 +1,5 @@
+{
+    "ProjectId": GITLAB_PROJECT_ID,
+    "GroupId": GITLAB_GROUP_ID,
+    "AccessLevel": "Maintainer"
+}

@@ -1,0 +1,5 @@
+{
+    "ProjectId": GITLAB_PROJECT_ID,
+    "Ref": "GITLAB_REF",
+    "Name": "TagTest"
+}

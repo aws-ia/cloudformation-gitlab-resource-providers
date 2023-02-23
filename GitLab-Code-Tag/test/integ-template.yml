@@ -1,0 +1,8 @@
+Resources:
+  MySampleProject:
+    Type: GitLab::Code::Tag
+    Properties:
+      Name: my-tag
+      ProjectId: GITLAB_PROJECT_ID
+      Ref: GITLAB_REF
+      Message: This is a sample tag
