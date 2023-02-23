@@ -1,0 +1,8 @@
+Resources:
+  MyUserJoiningAGroup:
+    Type: GitLab::Groups::UserMemberOfGroup
+    Properties:
+      GroupId: GITLAB_PARENT_GROUP_ID
+      UserId: GITLAB_SHARED_USER_ID
+      Username: GITLAB_SHARED_USER_NAME
+      AccessLevel: Guest

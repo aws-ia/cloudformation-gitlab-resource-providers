@@ -1,0 +1,5 @@
+{
+    "SharedGroupId": GITLAB_SHARED_GROUP_ID,
+    "SharedWithGroupId": GITLAB_GROUP_ID,
+    "AccessLevel": "Guest"
+}

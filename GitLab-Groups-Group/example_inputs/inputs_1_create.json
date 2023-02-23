@@ -1,5 +1,5 @@
 {
-    "ParentId": <GROUP_ID>,
+    "ParentId": GITLAB_PARENT_GROUP_ID,
     "Name": "my-sample-group",
     "Path": "path-to-sample-group"
 }
