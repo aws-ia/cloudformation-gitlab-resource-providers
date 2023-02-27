@@ -1,0 +1,7 @@
+Resources:
+  MyUserJoiningAGroup:
+    Type: GitLab::Groups::GroupAccessToGroup
+    Properties:
+      SharedGroupId: GITLAB_SHARED_GROUP_ID
+      SharedWithGroupId: GITLAB_GROUP_ID
+      AccessLevel: Maintainer
