@@ -1,9 +1,9 @@
 {
     "Name": "TestAccessToken",
-    "ProjectId": <PROJECT_ID>,
+    "ProjectId": GITLAB_PROJECT_ID,
     "AccessLevel": 30,
     "Scopes": [
         "api",
-        "write_registry"
+        "write_repository"
     ]
 }
