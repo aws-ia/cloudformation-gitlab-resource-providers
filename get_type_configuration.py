@@ -8,7 +8,7 @@ def get_secret():
     "Get the secret from secrets manager"
 
     secret_name = "gitlab-type-configuration"
-    region_name = "us-west-2"
+    region_name = "us-west-2" 
     session = boto3.session.Session()
     client = session.client(
         service_name="secretsmanager",
