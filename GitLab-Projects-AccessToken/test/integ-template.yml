@@ -1,0 +1,10 @@
+Resources:
+  GitLabProjectsAccessToken:
+    Type: GitLab::Projects::AccessToken
+    Properties:
+      Name: TestAccessToken
+      ProjectId: GITLAB_PROJECT_ID
+      AccessLevel: 30
+      Scopes:
+        - api
+        - write_repository
